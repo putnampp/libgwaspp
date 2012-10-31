@@ -26,3 +26,43 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef ALLELECOLLECTION_H
+#define ALLELECOLLECTION_H
+
+#include <map>
+#include <vector>
+
+#include "libgwaspp.h"
+#include "genetics/marker/allele_form.h"
+
+using namespace std;
+
+namespace libgwaspp {
+namespace genetics {
+
+typedef byte ALLELE_INDEX;
+
+class AlleleCollection {
+    public:
+        AlleleCollection() {}
+
+        const AlleleForm * findOrCreateAllele( string & alls, char del = 0 );
+
+        ALLELE_INDEX findOrCreateAlleleIndex( string & alls, char del = 0 );
+        ALLELE_INDEX findIndexOf( string &alls );
+
+        const AlleleForm * getAlleleAt( int idx ) const { return alleles[idx]; }
+
+        int getAlleleCount() const { return (int)alleles.size(); }
+
+        virtual ~AlleleCollection();
+    protected:
+    private:
+        map< ulong, ALLELE_INDEX > key_lookup;
+        vector< AlleleForm * > alleles;
+};
+
+}
+}
+
+#endif // ALLELECOLLECTION_H

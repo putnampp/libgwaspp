@@ -26,3 +26,42 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef HOMOMORPHICMAP_H
+#define HOMOMORPHICMAP_H
+
+#include <map>
+
+namespace util {
+
+/**
+ *
+ * A Homomorphic Map is essentially a bi-directional map between
+ * a object L(eft) and some indexing set R(ight)
+ *
+ * The intended use case is to generate an Alphabet for a categorical
+ * data.
+ *
+ * As an example, assume you have a vector of strings. Within this vector
+ * only 3 strings appear {"A Big Data", "Bigger Data", "Catastrophically Huge"}.
+ * Obviously, repeatly storing unique instances of these strings is memory inefficient.
+ * A simple solution to addressing the memory inefficiency is to store a pointer to each string.
+ * In other words, use the memory address of the strings as a homomorphism
+ **/
+
+template< class L, typename R = unsigned char, class Compare = less< L >, class Compare2 = less< R > >
+class HomomorphicMap
+{
+    public:
+        HomomorphicMap();
+
+        R translateLtoR ( L & left );
+        L translateRtoL ( R & right );
+
+        virtual ~HomomorphicMap();
+    protected:
+    private:
+};
+
+}
+
+#endif // HOMOMORPHICMAP_H

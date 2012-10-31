@@ -26,3 +26,28 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef SNPLOOKUPTABLE_H
+#define SNPLOOKUPTABLE_H
+
+#include "libgwaspp.h"
+#include "genetics/marker/allele.h"
+#include "util/lookup_table/lookup_table.h"
+
+using namespace libgwaspp::util;
+
+namespace libgwaspp {
+namespace genetics {
+
+class SNPLookupTable : public LookupTable< SNP > {
+    public:
+        static SNPLookupTable *getInstance();
+    protected:
+    private:
+        SNPLookupTable() : LookupTable< SNP >() {}
+        static SNPLookupTable *instance;
+};
+
+}
+}
+
+#endif // SNPLOOKUPTABLE_H

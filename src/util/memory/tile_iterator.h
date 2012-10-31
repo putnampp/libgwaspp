@@ -26,3 +26,37 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+ #ifndef TILEITERATOR_H
+#define TILEITERATOR_H
+
+#include <iterator>
+
+using namespace std;
+
+namespace util {
+
+template < class DATA >
+class TileIterator : public iterator< input_iterator_tag, D > {
+    public:
+        TileIterator( DATA * _d, int _step = 1) : d( _d ), step( _step ) {}
+        TileIterator( const TileIterator &t ) : d( t.d ), step( t.step) {}
+
+        TileIterator& operator++() { d += _step; return *this; }
+        TileIterator operator++(DATA) { TileIterator tmp(*this); operator++(); return tmp; }
+
+        bool operator==( const TileIterator &rhs ) { return d == rhs.d; }
+        bool operator!=( const TileIterator &rhs ) { return d != rhs.d; }
+
+        bool operator<( const TileIterator &rhs ) { return d < rhs.d; }
+
+        DATA& operator*() { return *d; }
+        virtual ~TileIterator();
+    protected:
+    private:
+        DATA * d;
+        int step;
+};
+
+}
+
+#endif // TILEITERATOR_H

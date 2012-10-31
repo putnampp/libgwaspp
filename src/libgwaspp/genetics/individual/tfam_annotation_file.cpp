@@ -26,3 +26,63 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include "genetics/individual/tfam_annotation_file.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+TFamAnnotationFile::TFamAnnotationFile() : GeneticDataFile() {
+    //ctor
+}
+
+bool TFamAnnotationFile::populateGeneticData( string &filename, GeneticData   *gd, char delim ) {
+    if( filename.empty() ) {
+        gd->setCaseControlSet(NULL, NULL);
+        return true;
+    }
+
+    ifstream iFile( filename.c_str() );
+
+    set<string> cases, controls;
+
+    string id;
+    while( !iFile.eof() ) {
+        getline( iFile, line );
+        parser.str( line );
+        parser.clear();
+
+        getline( parser, id, delim );  // family id
+        getline( parser, tok, delim );   // individual id
+        id += "-" + tok;
+        getline( parser, tok, delim);   // paternal id
+        getline( parser, tok, delim);   // maternal id
+        getline( parser, tok, delim);   // sex
+        getline( parser, tok, delim);   // disease?
+
+        switch( tok[0] ) {
+        case '1':
+            cases.insert( id );
+            break;
+        case '0':
+            controls.insert( id );
+            break;
+        default:
+            break;
+        }
+    }
+
+    gd->setCaseControlSet( &cases, &controls);
+
+    cases.clear();
+    controls.clear();
+
+    iFile.close();
+    return true;
+}
+
+TFamAnnotationFile::~TFamAnnotationFile() {
+    //dtor
+}
+
+}
+}

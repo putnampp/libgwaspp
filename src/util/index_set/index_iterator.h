@@ -26,3 +26,21 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef INDEX_ITERATOR_H
+#define INDEX_ITERATOR_H
+
+#include <iterator>
+
+namespace util {
+
+class IndexIterator : public std::iterator< std::input_iterator_tag, byte > {
+    public:
+        virtual IndexIterator *operator++() = 0;
+        virtual int operator*() = 0;
+
+        virtual bool is_done() = 0;
+};
+
+}
+
+#endif

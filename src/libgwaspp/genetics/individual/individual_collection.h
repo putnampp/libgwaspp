@@ -26,3 +26,58 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef INDIVIDUALCOLLECTION_H
+#define INDIVIDUALCOLLECTION_H
+
+#include <map>
+#include <set>
+#include <vector>
+#include <boost/unordered_map.hpp>
+
+#include "libgwaspp.h"
+#include "genetics/individual/individual.h"
+#include "genetics/phenotype/phenotype_tree.h"
+#include "util/index_set/indexable.h"
+
+using namespace std;
+
+namespace libgwaspp {
+namespace genetics {
+
+class IndividualCollection : public util::indexable {
+    public:
+        typedef boost::unordered_map< string, int > IndLookupSet;
+
+        IndividualCollection() : ptree( new PhenotypeTree() ) {}
+
+        Individual * findOrCreateIndividual( string & id );
+        Individual * getIndividualAt( int idx );
+
+        int operator()( const string & id );
+        string operator()( int idx ) const;
+
+        int size() const { return (int) individs.size(); }
+
+        int getCount() const { return (int) individs.size(); }
+        int getPhenotypeCount() const { return ptree->getPhenotypeCount(); }
+
+        PhenotypeTree * getPhenotypeTree() const { return ptree; }
+
+        vector< Individual * >::iterator begin();
+        vector< Individual * >::iterator end();
+
+        virtual ~IndividualCollection();
+    protected:
+        void reset();
+
+    private:
+        IndLookupSet individ_lookup;
+
+        vector< Individual * > individs;
+        PhenotypeTree *ptree;
+};
+
+}
+}
+
+#endif // INDIVIDUALCOLLECTION_H

@@ -26,3 +26,51 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef GENOTYPERECORDFACTORY_H
+#define GENOTYPERECORDFACTORY_H
+
+#include <iostream>
+#include <map>
+#include <vector>
+
+#include "libgwaspp.h"
+#include "genetics/genotype/genotype.h"
+#include "genetics/genotype/genotype_record.h"
+#include "genetics/genotype/genotype_collection.h"
+
+using namespace std;
+
+namespace libgwaspp {
+namespace genetics {
+
+
+
+class GenotypeRecordFactory {
+    public:
+        typedef map< const string *, int, StringPtrComparer > LookupTable;
+
+        bool addRecordData( string &gt );
+        GenotypeRecord * finalizeRecord();
+
+        const Genotype * decodeGenotype( GenotypeID gt ) { return gt_collect->findGenotype(gt); }
+
+        static GenotypeRecordFactory *instance();
+        virtual ~GenotypeRecordFactory();
+    protected:
+        virtual EncodedID addGenotypeToHeader( GenotypeID id );
+    private:
+        GenotypeRecordFactory();
+
+        GenotypeCollection *gt_collect;
+
+        map< GenotypeID, EncodedID > rec_header;
+        vector< EncodedID > rec_data;
+
+        GenotypeID last_gt_id;
+        EncodedID last_enc_id;
+};
+
+}
+}
+
+#endif // GENOTYPERECORDFACTORY_H

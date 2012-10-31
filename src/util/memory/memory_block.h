@@ -26,3 +26,44 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef MEMORY_BLOCK_H
+#define MEMORY_BLOCK_H
+
+#include <iterator>
+#include "common.h"
+
+
+namespace util {
+
+struct MemoryBlock {
+    uint length;
+    byte * mem;
+    MemoryBlock( byte * m, uint len) : mem(m), length( len ) {}
+};
+
+/**
+    MemoryBlockIterator is an abstract iterator for accessing sub-blocks within a MemoryBlock
+
+    The idea being that a memory block can contain
+**/
+class MemoryBlockIterator : public std::iterator< input_iterator_tag, byte > {
+    public:
+        MemoryBlockIterator( MemoryBlock * mb ) : ptr( mb->mem ), length( mb->length ), cur_idx(0), sub_block_size(0) {}
+        MemoryBlockIterator( const MemoryBlockIterator& mbi ) : ptr( mbi.ptr ), length( mbi.length ), cur_idx( mbi.cur_idx ), sub_block_size( mbi.sub_block_size ) {}
+
+        MemoryBlockIterator& operator++() { next(); return *this; }
+
+        inline bool operator==( const MemoryBlockIterator& mbi ) { return ptr == mbi.ptr && sub_block_size == mbi.sub_block_size; }
+        bool operator!=( const MemoryBlockIterator& mbi ) { return !operator==(mbi); }
+
+        MemoryBlock& operator*() { return MemoryBlock( ptr, sub_block_size ); }
+
+    protected:
+        virtual void next() = 0;
+        int length, cur_idx, sub_block_size;
+        byte * ptr;
+};
+
+}
+
+#endif // MEMORY_BLOCK_H

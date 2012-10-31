@@ -26,3 +26,45 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef CHROMOSOMELOOKUPTABLE_H
+#define CHROMOSOMELOOKUPTABLE_H
+
+#include <map>
+
+#include "genetics/chromosome/chromosome.h"
+#include "util/lookup_table/lookup_table.h"
+#include "util/exceptions/exceptions.h"
+
+using namespace std;
+using namespace util;
+
+namespace libgwaspp {
+namespace genetics {
+
+class ChromosomeLookupTable : public LookupTable< Chromosome > {
+    public:
+        static ChromosomeLookupTable *getInstance();
+
+        byte getIndex( string &name) throw();
+        byte addElement( Chromosome &c) throw();
+
+        Chromosome getChromosome( byte idx ) throw() { return getElement(idx); }
+
+        byte addAlias( Chromosome &c, string &altName) throw();
+        byte addAlias( byte idx, string &altName ) throw();
+
+        void reset();
+
+        virtual ~ChromosomeLookupTable();
+    protected:
+        map< string, ElementSetIterator > alias;
+        map< string, ElementSetIterator >::iterator aliasIter;
+    private:
+        ChromosomeLookupTable();
+        static ChromosomeLookupTable *instance;
+};
+
+}
+}
+
+#endif // CHROMOSOMELOOKUPTABLE_H

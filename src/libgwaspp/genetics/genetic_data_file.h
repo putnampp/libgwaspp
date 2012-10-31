@@ -26,3 +26,36 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef GENETIC_DATA_FILE_H
+#define GENETIC_DATA_FILE_H
+
+#include <sstream>
+
+#include "genetics/genetic_data.h"
+
+
+namespace libgwaspp {
+namespace genetics {
+
+class GeneticDataFile {
+public:
+    GeneticDataFile() {}
+
+    virtual bool populateGeneticData( string &filename, GeneticData   *gd, char delim = '\t' ) = 0;
+
+    virtual ~GeneticDataFile() {}
+protected:
+    virtual bool parseHeader( istream *iFile, GeneticData *gd, char delim ) = 0;
+    virtual bool parseNextMarkerRecord( istream *iFile, GeneticData *gd, char delim ) = 0;
+    virtual bool parseNextGenotypeRecord( istream *iFile, GeneticData *gd, char delim ) = 0;
+
+    virtual bool parseNextRecord( istream * iFile, GeneticData *gd, char delim ) = 0;
+
+    istringstream parser;
+    string line, tok;
+};
+
+}
+}
+
+#endif

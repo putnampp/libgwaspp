@@ -26,3 +26,16 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include "genetics/genotype/geno_table.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+const string GenoTable::alphabet = GENOTYPE_ALPHABET;
+const string GenoTable::err_alphabet = "0?N";
+
+const int GenoTable::BITS_PER_BLOCK = 16;
+const int GenoTable::BYTES_PER_BLOCK = 2;
+
+}
+}

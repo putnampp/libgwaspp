@@ -26,3 +26,41 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef CHROMOSOMECOLLECTION_H
+#define CHROMOSOMECOLLECTION_H
+
+#include <iostream>
+#include <vector>
+#include <map>
+
+#include "libgwaspp.h"
+#include "genetics/chromosome/chromosome.h"
+
+using namespace std;
+
+namespace libgwaspp {
+namespace genetics {
+
+typedef byte ChromosomeID;
+
+class ChromosomeCollection {
+    public:
+        typedef map< const string *, ChromosomeID, StringPtrComparer> LookupTable;
+        ChromosomeCollection();
+
+        const Chromosome *findChromosome( string &name ) const;
+        const Chromosome *findChromosome( ChromosomeID id ) const { return chroms[ id ]; }
+
+        ChromosomeID createChromosome( string &name, uint length = 0 );
+
+        virtual ~ChromosomeCollection();
+    protected:
+    private:
+        LookupTable chrom_lookup;
+        vector< Chromosome * > chroms;
+};
+
+}
+}
+
+#endif // CHROMOSOMECOLLECTION_H

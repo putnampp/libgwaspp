@@ -26,3 +26,53 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef TRAIT_H
+#define TRAIT_H
+
+#include <iostream>
+
+using namespace std;
+
+namespace libgwaspp {
+namespace genetics {
+
+/**
+    @file   genetics/traits/trait.h
+
+    Basic form of a trait
+
+    @author Patrick Putnam
+*/
+class Trait {
+    public:
+        Trait( string &_name, string &_note, double _herit ) : name( _name ), note( _note ), heritability( _herit ) {}
+
+        /**
+            @return Trait Name
+        */
+        string getName() const { return name; }
+
+        /**
+            @return Note associated with trait
+        */
+        string getNote() const { return note; }
+
+        /**
+            @return Percent heritability
+        */
+        double getHeritability() const { return heritability; }
+
+        virtual ~Trait() {}
+
+    protected:
+        string name, note;
+        double heritability;
+
+    private:
+};
+
+//typedef col_data< Trait > TraitBuilder;
+
+}
+}
+#endif // TRAIT_H

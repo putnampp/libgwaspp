@@ -26,3 +26,23 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include "genetics/genotype/common_genotype_func.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+void printContingencyTable( const contingency_table & ct, ostream & out, bool include_header ) {
+    if( include_header ) {
+        out << "\tAA\tAa\taa\nBB\t";
+    }
+    out << dec << ct.n0 << "\t" << ct.n1 << "\t" << ct.n2 << endl;
+    if( include_header )
+        out << "Bb\t";
+    out << ct.n3 << "\t" << ct.n4 << "\t" << ct.n5 << endl;
+    if( include_header )
+        out << "bb\t";
+    out << ct.n6 << "\t" << ct.n7 << "\t" << ct.n8 << endl;
+}
+
+}
+}

@@ -26,3 +26,31 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef SNPMARKER_H
+#define SNPMARKER_H
+
+#include "genetics/genotype/genotype_table.h"
+#include "genetics/marker/marker.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+
+/**
+    A SNP is base marker with at most two forms
+*/
+class SNPMarker : public Marker {
+    public:
+        SNPMarker(string & n, byte cIdx, uint s, uint e, double genPos, byte gIdx) : Marker(n, cIdx, s, e, genPos), genoIdx(gIdx) {}
+
+        int getAlleleCount() { return 2; }
+
+        virtual ~SNPMarker();
+    protected:
+    private:
+        byte genoIdx;
+};
+
+}
+}
+#endif // SNPMARKER_H

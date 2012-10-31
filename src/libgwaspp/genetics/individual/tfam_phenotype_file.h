@@ -26,3 +26,32 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef TFAMPHENOTYPEFILE_H
+#define TFAMPHENOTYPEFILE_H
+
+#include <vector>
+#include "genetics/individual/individual_phenotype_file.h"
+
+using namespace std;
+
+namespace libgwaspp {
+namespace genetics {
+
+class TfamPhenotypeFile : public IndividualPhenotypeFile {
+public:
+    TfamPhenotypeFile() {}
+
+    bool populateGeneticData( string &filename, GeneticData *gd, char delim );
+
+    virtual ~TfamPhenotypeFile() {}
+protected:
+    virtual bool parseHeader( istream *iFile, GeneticData *gd, char delim );
+    virtual bool parseNextRecord( istream *iFile, GeneticData *gd, char delim );
+
+    vector<int> individ_indexes;
+};
+
+}
+}
+
+#endif // TFAMPHENOTYPEFILE_H

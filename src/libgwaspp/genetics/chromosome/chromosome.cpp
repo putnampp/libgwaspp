@@ -26,3 +26,18 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include "genetics/chromosome/chromosome.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+bool Chromosome::operator<(const Chromosome &c) const {
+    return this->chrom.compare(c.chrom) < 0;
+}
+
+Chromosome::~Chromosome() {
+    //dtor
+}
+
+}
+}

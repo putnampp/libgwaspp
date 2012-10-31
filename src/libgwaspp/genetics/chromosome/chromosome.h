@@ -26,3 +26,32 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef CHROMOSOME_H
+#define CHROMOSOME_H
+
+#include "util/interval/interval.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+/**
+    A Chromosome is named interval, or sequence.
+*/
+class Chromosome : public util::LORCInterval {
+    public:
+        Chromosome(string &name, uint length = 0) : LORCInterval( 0, length), chrom(name) {}
+
+        string getName() const { return chrom; }
+        const string * getNamePtr() const { return &chrom; }
+
+        bool operator<(const Chromosome &c) const;
+
+        virtual ~Chromosome();
+    protected:
+    private:
+        string chrom;
+};
+
+}
+}
+#endif // CHROMOSOME_H

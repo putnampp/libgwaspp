@@ -26,3 +26,42 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef QUANTITATIVETRAIT_H
+#define QUANTITATIVETRAIT_H
+
+#include "genetics/trait/trait.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+
+/**
+    A QuantitativeTrait is ...
+
+    @author Patrick Putnam
+*/
+class QuantitativeTrait : public Trait {
+    public:
+        QuantitativeTrait( string &_name, string &_note, double _herit, double _mean = 0.0, double _var = 0.0, double _min = 0.0, double _max = 0.0 ) :
+            Trait( _name, _note, _herit ), mean( _mean ), var( _var ), min( _min ), max( _max ) {};
+
+        double getMean() { return this->mean; }
+        double getVariance() { return this->var; }
+        double getMin() { return this->min; }
+        double getMax() { return this->max; }
+
+        void setMean( double m ) { this->mean = m; }
+        void setVariance( double v ) { this->var = v; }
+        void setMax( double m ) { this->max = m; }
+        void setMin( double m ) { this->min = m; }
+
+        virtual ~QuantitativeTrait() {}
+    protected:
+        double mean, var;
+        double min, max;
+    private:
+};
+
+}
+}
+#endif // QUANTITATIVETRAIT_H

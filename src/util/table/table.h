@@ -26,3 +26,53 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef TABLE_H
+#define TABLE_H
+
+#include <iostream>
+#include <vector>
+
+#include "util/index_set/index_set.h"
+
+using namespace std;
+
+namespace util {
+
+/**
+        A table is simply a way of representing ordered data in as
+        contiguous sets of contiguous data elements. From an abstract
+        perspective, a table only needs to know the dimensions
+        for defining the contiguous regions.
+*/
+
+template < class D >
+class Table {
+    public:
+        Table( indexer *r, indexer *c ) : rows( r ), columns( c ), max_row( r->included_size() ), max_column( c->included_size() ), data( NULL ) { }
+
+        virtual D operator()( int r, int c ) { return data[ r * max_column + c ]; }
+
+        int row_size() const { return max_row; }
+        int column_size() const { return max_column; }
+
+        string rowID( int row_idx ) const { return rows->getIDAtOrderedIndex( row_idx ); }
+        string columnID( int column_idx ) const { return columns->getIDAtOrderedIndex( column_idx ); }
+
+        const indexer * getRowSet() { return rows; }
+        const indexer * getColumnSet() { return columns; }
+
+        virtual ~Table() {
+            delete [] data;
+        }
+    protected:
+        Table( int maxR, int maxC ) : rows( NULL ), columns( NULL ), max_row( maxR ), max_column( maxC ), data( NULL ) { }
+        virtual void initialize() = 0;
+
+        indexer *rows,  *columns;
+        int max_row, max_column;
+        D *data;
+};
+
+}
+
+#endif // TABLE_H

@@ -26,3 +26,31 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef ILLUMINAANNOTATIONFILE_H
+#define ILLUMINAANNOTATIONFILE_H
+
+#include "genetics/genetic_data.h"
+#include "genetics/genetic_data_file.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+class IlluminaAnnotationFile : public GeneticDataFile {
+public:
+    IlluminaAnnotationFile();
+
+    virtual bool populateGeneticData( string &filename, GeneticData *gd, char delim );
+
+    virtual ~IlluminaAnnotationFile();
+protected:
+    virtual bool parseHeader( istream *iFile, GeneticData *gd, char delim ) { return true; }
+    virtual bool parseNextMarkerRecord( istream *iFile, GeneticData *gd, char delim ) { return true; }
+    virtual bool parseNextGenotypeRecord( istream *iFile, GeneticData *gd, char delim ) { return true; }
+
+    virtual bool parseNextRecord( istream *iFile, GeneticData *gd, char delim ) { return true; }
+};
+
+}
+}
+
+#endif // ILLUMINAANNOTATIONFILE_H

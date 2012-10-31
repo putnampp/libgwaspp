@@ -26,3 +26,36 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef CHROMOSOMALINTERVAL_H
+#define CHROMOSOMALINTERVAL_H
+
+#include "libgwaspp.h"
+#include "util/interval/interval.h"
+#include "genetics/chromosome/chromosome_collection.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+/**
+    A ChromosomalInterval is a proper subset of a chromosome
+
+    It also has an associated genetic position
+*/
+class ChromosomalInterval : public util::LCROInterval {
+    public:
+        ChromosomalInterval( ChromosomeID cIdx, uint s, uint e, double genPos ) : LCROInterval( s, e ), chromIdx( cIdx ), geneticPos( genPos ) {}
+
+        ChromosomeID getChromosomeID() const { return chromIdx; }
+
+        double getGeneticPosition() { return geneticPos; }
+
+        virtual ~ChromosomalInterval() {}
+    protected:
+        ChromosomeID chromIdx;
+
+        double geneticPos;
+};
+
+}
+}
+#endif // CHROMOSOMALINTERVAL_H

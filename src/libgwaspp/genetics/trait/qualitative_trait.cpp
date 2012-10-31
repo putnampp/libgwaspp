@@ -26,3 +26,52 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include "genetics/trait/qualitative_trait.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+void QualitativeTrait::addCategory( Category &c, bool isMissing ) {
+    this->cat.insert(c);
+
+    if(isMissing)
+        this->missingIdx = (unsigned char) ((int)this->cat.size() - 1);
+}
+
+void QualitativeTrait::addCategory( string &n, double freq, bool isMissing) {
+    this->cat.insert( Category(n, freq));
+
+    if( isMissing )
+        this->missingIdx = (unsigned char)((int)this->cat.size() - 1);
+}
+
+void QualitativeTrait::setMissingCategory( string n ) {
+    int ret = 0;
+    for(set< Category >::iterator it = this->cat.begin(); it != this->cat.end(); it++, ret++) {
+        if( it->equals(n) ) {
+            break;
+        }
+    }
+
+    this->missingIdx = (( ret >= (int) this->cat.size()) ? -1 : ret);
+}
+
+double QualitativeTrait::getFrequency( string &n ) {
+    double f = -1.0;
+    for(set< Category >::iterator it = this->cat.begin(); it != this->cat.end(); it++) {
+        if( it->equals(n) ) {
+            f = it->getFrequency();
+            break;
+        }
+    }
+
+    return f;
+}
+
+QualitativeTrait::~QualitativeTrait() {
+    //dtor
+    this->cat.clear();
+}
+
+}
+}

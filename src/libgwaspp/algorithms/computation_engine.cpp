@@ -26,3 +26,62 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include "algorithms/computation_engine.h"
+
+namespace libgwaspp {
+namespace algorithms {
+
+void compute( void ( *f )( void *, void * ), void *input, void *output ) {
+    INIT_LAPSE_TIME;
+    RECORD_START;
+    BasicInput *bi = reinterpret_cast<BasicInput *>( input );
+
+    auto_ptr<IndexedInput> idx_input( new IndexedInput( bi ) );
+
+    int idx = 0;
+
+    /**
+    Convert Marker ids into table order row index
+    */
+    set<string>::const_iterator it = bi->marker_ids->begin(), end = bi->marker_ids->end();
+    for( ; it != end; ++it ) {
+        idx = bi->gd->getGenotypedMarkerIndex( *it );
+        assert( idx != -1 );
+
+        idx_input->midx->insert( idx );
+    }
+
+    /**
+    Covert Individual ids into table order column index
+    */
+    it = bi->individual_ids->begin();
+    end = bi->individual_ids->end();
+    for( ; it != end; ++it )  {
+        idx = bi->gd->getGenotypedIndividualIndex( *it );
+        assert( idx != -1 );
+
+        idx_input->iidx->insert( idx );
+    }
+
+    f(( void * ) bi, output );
+
+    RECORD_STOP;
+    PRINT_LAPSE(cout, "Total runtime: " );
+}
+
+void compute( void ( *f )(GeneticData *, ostream *), GeneticData *gd, ostream *out ) {
+    INIT_LAPSE_TIME;
+    RECORD_START;
+
+    if( out == NULL ) {
+        out = &cout;
+    }
+
+    f( gd, out );
+
+    RECORD_STOP;
+    PRINT_LAPSE( *out, "Total runtime: " );
+}
+
+}
+}

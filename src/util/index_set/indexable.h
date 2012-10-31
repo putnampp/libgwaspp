@@ -26,3 +26,20 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef indexable_H
+#define indexable_H
+
+#include <iostream>
+
+namespace util {
+
+struct indexable {
+    virtual int operator()( const std::string &id ) = 0;
+    virtual std::string operator()( int idx ) const = 0;
+
+    virtual int size() const = 0;
+};
+
+}
+
+#endif

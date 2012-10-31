@@ -26,3 +26,77 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef GENOTYPETABLE_H
+#define GENOTYPETABLE_H
+
+#include <iostream>
+#include <set>
+#include <vector>
+
+#include "libgwaspp.h"
+#include "genetics/genotype/genotype.h"
+#include "genetics/genotype/genotype_exceptions.h"
+#include "util/exceptions/exceptions.h"
+#include "util/table/table.h"
+
+using namespace std;
+using namespace util;
+
+namespace libgwaspp {
+namespace genetics {
+
+typedef pair<Genotype, byte> EncodedGenotype;
+
+struct gtTableComp {
+    bool operator() (const EncodedGenotype &lhs, const EncodedGenotype &rhs) const {
+        return lhs.first.compare(rhs.first) < 0;
+    }
+};
+
+typedef set< EncodedGenotype, gtTableComp > GenotypeSet;
+
+class GenotypeTable {
+    public:
+        static GenotypeTable *getInstance();
+
+        void loadGenotypeTable( string &gt_file );
+
+        byte addGenotype( EncodedGenotype &eg) throw();
+
+        int getGenotypeCount() const { return (int)genos.size(); }
+
+        byte findEncodedGenotype( Genotype &gt ) throw();
+        Genotype getGenotype( byte encoding ) throw();
+
+        virtual ~GenotypeTable();
+    protected:
+
+
+        void reset();
+    private:
+        GenotypeTable();
+
+        static GenotypeTable *instance;
+        GenotypeSet::iterator gtIterator;
+
+        GenotypeSet genos;
+        vector< GenotypeSet::iterator > index;
+};
+
+class GenotypeTable2 : public Table< byte > {
+
+
+};
+
+class GenotypeTableBuilder {
+    public:
+        static GenotypeTableBuilder(
+        virtual GenotypeTableBuilder() {}
+    private:
+        GenotypeTableBuilder();
+};
+
+}
+}
+
+#endif // GENOTYPETABLE_H

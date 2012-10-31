@@ -26,3 +26,68 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include "genetics/individual/individual_collection.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+Individual *IndividualCollection::findOrCreateIndividual( string &id ) {
+    IndLookupSet::iterator ptr_iter;
+
+    if(( ptr_iter = individ_lookup.find( id ) ) == individ_lookup.end() ) {
+        Individual *ind = new Individual( id, ptree );
+
+        individ_lookup[ id ] = (int) individs.size();
+        individs.push_back( ind );
+
+        return ind;
+    } else {
+        return individs[ptr_iter->second];
+    }
+}
+
+Individual *IndividualCollection::getIndividualAt( int idx ) {
+    return individs[ idx ];
+}
+
+
+int IndividualCollection::operator()( const string &id ) {
+    IndLookupSet::const_iterator ptr_iter;
+    if(( ptr_iter = individ_lookup.find( id ) ) == individ_lookup.end() ) {
+        Individual *ind = new Individual( id, ptree );
+
+        individ_lookup[ id ] = (int) individs.size();
+        individs.push_back( ind );
+
+        return (int) individs.size() - 1;
+    }
+
+    return ptr_iter->second;
+}
+
+string IndividualCollection::operator()( int idx ) const {
+    return individs[ idx ]->getID();
+}
+
+
+void IndividualCollection::reset() {
+    for( vector< Individual * >::iterator it = individs.begin(); it != individs.end(); it++ ) {
+        if( *it != NULL ) {
+            delete *it;
+        }
+    }
+    individ_lookup.clear();
+    individs.clear();
+    ptree->reset();
+}
+
+IndividualCollection::~IndividualCollection() {
+    //dtor
+
+    reset();
+
+    delete ptree;
+}
+
+}
+}

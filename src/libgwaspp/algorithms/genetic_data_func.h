@@ -26,3 +26,26 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef GENETIC_DATA_FUNC_H
+#define GENETIC_DATA_FUNC_H
+
+#include <iostream>
+#include <set>
+
+#include <gsl/gsl_rng.h>
+
+#include "common.h"
+#include "util/index_set/indexer.h"
+
+using namespace std;
+using namespace util;
+
+namespace libgwaspp {
+namespace algorithms {
+
+void RandomIDSet( indexer * idx, std::set<std::string> & id_set, int count );
+
+}
+}
+
+#endif // GENETIC_DATA_FUNC_H

@@ -26,3 +26,33 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef GENOTYPELOOKUPTABLE_H
+#define GENOTYPELOOKUPTABLE_H
+
+#include <iostream>
+
+#include "genetics/genotype/genotype.h"
+#include "util/lookup_table/lookup_table.h"
+#include "util/exceptions/exceptions.h"
+
+using namespace std;
+using namespace libgwaspp::util;
+
+namespace libgwaspp {
+namespace genetics {
+
+class GenotypeLookupTable : public LookupTable< Genotype > {
+    public:
+        static GenotypeLookupTable* getInstance();
+
+        virtual ~GenotypeLookupTable();
+    protected:
+    private:
+        GenotypeLookupTable();
+        static GenotypeLookupTable *instance;
+};
+
+}
+}
+
+#endif // GENOTYPELOOKUPTABLE_H

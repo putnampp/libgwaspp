@@ -26,3 +26,62 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef MARKER_H
+#define MARKER_H
+
+#include <iostream>
+#include <iterator>
+#include <set>
+
+#include "libgwaspp.h"
+#include "genetics/chromosome/chromosomal_interval.h"
+#include "genetics/marker/allele_form.h"
+#include "genetics/marker/allele_collection.h"
+
+using namespace std;
+
+namespace libgwaspp {
+namespace genetics {
+
+enum MarkerType { UNKNOWN = 0, SNP, SNV, CNV, INDEL, STR, GENE };
+
+struct MarkerNameComparer;
+struct MarkerPositionComparer;
+
+/**
+    A Marker is a named chromosomal interval
+
+    @author Patrick Putnam
+**/
+class Marker : public ChromosomalInterval {
+    public:
+        Marker(string & n, ChromosomeID cIdx, uint s, uint e, double genPos, const AlleleForm * af) : ChromosomalInterval(cIdx, s, e, genPos), id(n), allele(af)  {}
+
+        string getID() const { return id; }
+        const string * getIDPtr() const { return &id; }
+
+        const AlleleForm * getAlleles() const { return allele; }
+
+        friend struct MarkerIDComparer;
+        friend struct MarkerPositionComparer;
+
+        virtual ~Marker() {}
+    protected:
+    private:
+        string id;
+//        ALLELE_INDEX allele_idx;
+        const AlleleForm * allele;
+};
+
+struct MarkerIDComparer {
+    bool operator()( const Marker & lhs, const Marker & rhs ) { return strcmp( lhs.id.c_str(), rhs.id.c_str()) < 0; }
+};
+
+struct MarkerPositionComparer {
+    bool operator()( const Marker & lhs, const Marker & rhs ) { return (lhs.chromIdx < rhs.chromIdx) || (lhs.chromIdx == rhs.chromIdx && lhs.getStart() < rhs.getStart()); }
+
+};
+
+}
+}
+#endif // MARKER_H

@@ -26,3 +26,47 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef EPISTASIS_FUNC_H
+#define EPISTASIS_FUNC_H
+
+#include <cstring>
+#include <cmath>
+#include <fstream>
+
+#include "genetics/genetic_data.h"
+#include "genetics/genotype/common_genotype.h"
+#include "genetics/genotype/common_genotype_func.h"
+#include "genetics/analyzable/case_control_set.h"
+
+#include "util/time/timing.h"
+
+#include "algorithms/computation_engine.h"
+
+
+#define MATHLIB_STANDALONE
+#include "Rmath.h"
+
+namespace libgwaspp {
+namespace algorithms {
+
+using namespace libgwaspp::genetics;
+
+const int GT_COUNT = 3;
+const int GT_BUFFER_COUNT = 2;
+const int GT_BUFFER_SIZE = GT_COUNT *GT_BUFFER_COUNT;
+
+void epistasis_all( void *input, void *output );
+void epistasis_all2( void *input, void *output );
+
+void ContingencyDebug( void * input, void * output );
+void ContingencyPerformance( void * input, void * output );
+
+void EpistasisDebug( void * input, void * output );
+void EpistasisPerformance( void * input, void * output );
+
+double pairwise_epi_test( const contingency_table &_case, const contingency_table &_ctrl);
+
+}
+}
+
+#endif // EPISTASIS_FUNC_H

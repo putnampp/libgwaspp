@@ -1,0 +1,8 @@
+# Ignore CodeBlocks project files
+*.cbp
+*.layout*
+build*
+docs
+papers
+valgrind
+analysis

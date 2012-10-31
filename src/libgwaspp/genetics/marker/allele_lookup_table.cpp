@@ -26,3 +26,19 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include "genetics/marker/allele_lookup_table.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+AlleleLookupTable *AlleleLookupTable::instance = NULL;
+
+AlleleLookupTable *AlleleLookupTable::getInstance() {
+    if( instance == NULL ) {
+        instance = new AlleleLookupTable();
+    }
+    return instance;
+}
+
+}
+}

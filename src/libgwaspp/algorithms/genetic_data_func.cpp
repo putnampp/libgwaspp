@@ -26,3 +26,52 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include "algorithms/genetic_data_func.h"
+
+namespace libgwaspp {
+namespace algorithms {
+
+void RandomIDSet( indexer *gd, std::set<std::string> & individ_set, int count ) {
+    if( count < gd->included_size() ) {
+        const gsl_rng_type *T;
+        gsl_rng *r;
+
+        gsl_rng_env_setup();
+
+        T = gsl_rng_default;
+        r = gsl_rng_alloc( T );
+
+        individ_set.clear();
+
+        double rnd;
+        int idx, included = gd->included_size();
+        set<int> rand_index;
+
+
+        while(( int )rand_index.size() < count ) {
+            rnd = gsl_rng_uniform( r );
+            idx = ( int )( included * rnd ) - 1;
+
+            if( idx < 0 ) { idx = included; }
+
+            rand_index.insert( idx );
+        }
+
+        for( set<int>::iterator it = rand_index.begin(), end = rand_index.end(); it != end; ++it ) {
+            string tmp = gd->getIDAtOrderedIndex( *it );
+            individ_set.insert( tmp );
+        }
+
+        gsl_rng_free( r );
+        rand_index.clear();
+
+    } else {
+        for( int i = 0; i < gd->included_size(); ++i) {
+            string tmp = gd->getIDAtOrderedIndex( i );
+            individ_set.insert( tmp );
+        }
+    }
+}
+
+}
+}

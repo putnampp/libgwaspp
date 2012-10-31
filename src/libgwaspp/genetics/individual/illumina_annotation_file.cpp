@@ -26,3 +26,60 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include "illumina_annotation_file.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+IlluminaAnnotationFile::IlluminaAnnotationFile() : GeneticDataFile() {
+    //ctor
+}
+
+bool IlluminaAnnotationFile::populateGeneticData( string &filename, GeneticData *gd, char delim ) {
+
+    if( filename.empty() ) {
+        gd->setCaseControlSet( NULL, NULL );
+        return true;
+    }
+
+    bool success = true;
+    ifstream iFile( filename.c_str() );
+
+    set<string> cases, controls;
+
+    string id;
+    while( !iFile.eof() ) {
+        getline( iFile, line );
+        parser.str( line );
+        parser.clear();
+
+        getline( parser, id, delim );
+        getline( parser, tok, delim);
+
+        switch( tok[0] ) {
+            case '1':
+                cases.insert( id );
+                break;
+            case '0':
+                controls.insert( id );
+                break;
+            default:
+                break;
+        }
+    }
+
+    gd->setCaseControlSet( &cases, &controls );
+
+    cases.clear();
+    controls.clear();
+
+    iFile.close();
+    return success;
+}
+
+IlluminaAnnotationFile::~IlluminaAnnotationFile() {
+    //dtor
+}
+
+}
+}

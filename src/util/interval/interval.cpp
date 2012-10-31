@@ -26,3 +26,34 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include "util/interval/interval.h"
+
+namespace util {
+
+Interval::Interval(uint a, uint b) {
+    //ctor
+
+    if( a <= b) {
+        start = a;
+        end = b;
+    } else {
+        start = b;
+        end = a;
+    }
+}
+
+Interval::~Interval() {
+    //dtor
+}
+
+ostream& operator<<(ostream& os, const LCROInterval &interval) {
+    os << "[ " << interval.start << ", " << interval.end << ")";
+    return os;
+}
+
+ostream& operator<<(ostream& os, const LORCInterval &interval) {
+    os << "( " << interval.start << ", " << interval.end << "]";
+    return os;
+}
+
+}

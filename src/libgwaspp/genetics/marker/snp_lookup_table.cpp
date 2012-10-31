@@ -26,3 +26,19 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+ #include "snp_lookup_table.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+SNPLookupTable * SNPLookupTable::instance = NULL;
+
+SNPLookupTable * SNPLookupTable::getInstance() {
+    if( instance == NULL ) {
+        instance = new SNPLookupTable();
+    }
+    return instance;
+}
+
+}
+}

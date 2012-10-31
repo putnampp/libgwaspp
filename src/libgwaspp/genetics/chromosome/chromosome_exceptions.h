@@ -26,3 +26,31 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef CHROMOSOME_EXCEPTION_H_
+#define CHROMOSOME_EXCEPTION_H_
+
+#include <exception>
+
+using namespace std;
+
+namespace libgwaspp {
+namespace genetics {
+
+class ChromosomeNotFoundException : public exception {
+    public:
+        virtual const char* what() const throw() {
+            return "Chromosome Not Found";
+        }
+};
+
+class ChromosomeTableFullException : public exception {
+    public:
+        virtual const char* what() const throw() {
+            return "Chromosome Table Full";
+        }
+};
+
+}
+}
+
+#endif // CHROMOSOME_EXCEPTION_H_

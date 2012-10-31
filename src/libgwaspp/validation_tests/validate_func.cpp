@@ -26,3 +26,30 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include "validation_tests/validate_func.h"
+
+void printAllCalls( void * input, void * output ) {
+    BasicInput &inp = *reinterpret_cast<BasicInput *>( input );
+
+    ostream & out = ((output == NULL ) ? cout : *reinterpret_cast< ostream * >(output));
+
+    uint marker_count = inp.gd->getGenotypedMarkersCount();
+    uint individ_count = inp.gd->getGenotypedIndividualsCount();
+
+    GenoTable &gt = *inp.gd->getGenotypeTable();
+
+    uint i, j;
+
+    for( j = 0; j < individ_count; ++j ) {
+        out << "\t" << inp.gd->getGenotypedIndividualID(j);
+    }
+    out << endl;
+
+    for( i = 0; i < marker_count; ++i ) {
+        out << inp.gd->getGenotypedMarkerID( i );
+        for( j = 0; j < individ_count; ++j ) {
+            out << "\t" << gt.getCallAt( i, j );
+        }
+        out << endl;
+    }
+}

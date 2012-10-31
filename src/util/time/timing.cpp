@@ -26,3 +26,65 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include "util/time/timing.h"
+
+namespace util {
+
+int diff_TIME( TIME &res, TIME &x, TIME &y ) {
+    uint64_t x_frac = x.FRAC + ( FRAC_SEC_TIME * x.tv_sec );
+    uint64_t y_frac = y.FRAC + ( FRAC_SEC_TIME * y.tv_sec );
+
+    x_frac -= y_frac;
+    res.tv_sec = x_frac / FRAC_SEC_TIME;
+    res.FRAC = x_frac % FRAC_SEC_TIME;
+
+    return x.tv_sec < y.tv_sec;
+}
+
+int sum_TIME( TIME &res, TIME &x, TIME &y ) {
+    uint64_t x_frac = x.FRAC + ( FRAC_SEC_TIME * x.tv_sec );
+    uint64_t y_frac = y.FRAC + ( FRAC_SEC_TIME * y.tv_sec );
+
+    x_frac += y_frac;
+
+    res.tv_sec = x_frac / FRAC_SEC_TIME;
+    res.FRAC = x_frac % FRAC_SEC_TIME;
+
+    return 0;
+}
+
+int avg_TIME( TIME &avg, TIME &tot, int samples ) {
+    uint64_t tmp = tot.FRAC + ( FRAC_SEC_TIME * tot.tv_sec );
+    tmp /= samples;
+
+    avg.tv_sec = tmp / FRAC_SEC_TIME;
+    avg.FRAC = tmp % FRAC_SEC_TIME;
+
+    return 0;
+}
+
+int PrintTime( TIME &t ) {
+    AdjustTime( t );
+    return printf( TIME_PRINT, t.tv_sec, t.FRAC );
+}
+
+void AdjustTime( TIME &t ) {
+    uint64_t x_frac = t.FRAC + ( FRAC_SEC_TIME * t.tv_sec );
+
+    t.tv_sec = x_frac / FRAC_SEC_TIME;
+    t.FRAC = x_frac % FRAC_SEC_TIME;
+}
+
+timespec convertTimeToTimespec( TIME &t ) {
+    timespec _t;
+    _t.tv_sec = t.tv_sec;
+    #if NANO_TIME
+        _t.tv_nsec = t.tv_nsec;
+    #else
+        _t.tv_nsec = t.tv_usec * 1000;
+    #endif
+    return _t;
+
+}
+
+}

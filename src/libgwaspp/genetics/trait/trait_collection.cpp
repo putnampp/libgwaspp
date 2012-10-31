@@ -26,3 +26,21 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+ #include "genetics/trait/trait_collection.h"
+
+
+namespace libgwaspp {
+namespace genetics {
+
+TraitCollection::TraitCollection()
+{
+    //ctor
+}
+
+TraitCollection::~TraitCollection()
+{
+    //dtor
+}
+
+}
+}

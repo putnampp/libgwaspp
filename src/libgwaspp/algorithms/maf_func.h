@@ -26,3 +26,37 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef MAF_FUNC_H
+#define MAF_FUNC_H
+
+#include <fstream>
+
+#include "genetics/genetic_data.h"
+#include "genetics/genotype/geno_table.h"
+#include "util/time/timing.h"
+
+#include "algorithms/computation_engine.h"
+
+namespace libgwaspp {
+namespace algorithms {
+
+using namespace libgwaspp::genetics;
+using namespace std;
+
+const int POSSIBLE_ENC = 1 << ( 8 * sizeof( ushort ) );
+
+void computeMAF( GenoTable &gt );
+void computeMAF( GeneticData *gd, const set<string> & row_ids, const set<string> & column_ids );
+
+void maf_all( void *input, void *output );
+void maf_from_distribution( void *input, void *output );
+
+void maf( void *input, void *output );
+void maf_all( IndexedInput &input, void *output );
+
+void compute_maf_perform( GeneticData *gd, ostream *out);
+
+}
+}
+
+#endif // MAF_FUNC_H

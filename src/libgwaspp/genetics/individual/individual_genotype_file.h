@@ -26,3 +26,52 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef INDIVIDUALGENOTYPEFILE_H
+#define INDIVIDUALGENOTYPEFILE_H
+
+#include <fstream>
+
+#include <vector>
+#include <boost/algorithm/string.hpp>
+
+#include "libgwaspp.h"
+#include "genetics/genetic_data.h"
+#include "genetics/genetic_data_file.h"
+#include "genetics/individual/individual_collection.h"
+#include "gzstream/gzstream.h"
+#include "genetics/genotype/genotype_table2.h"
+
+#include "util/time/timing.h"
+
+using namespace std;
+using namespace util;
+using namespace boost::algorithm;
+
+namespace libgwaspp {
+namespace genetics {
+
+class IndividualGenotypeFile : public GeneticDataFile {
+    public:
+        IndividualGenotypeFile( );
+
+        bool populateGeneticData( string &filename, GeneticData   *gd, char delim );
+
+        virtual ~IndividualGenotypeFile();
+    protected:
+
+        virtual void guessExpectedSizes( istream *iFile, int &mcnt, int &gt_width, char delim );
+
+        virtual bool parseHeader( istream *iFile, GeneticData *gd, char delim );
+        virtual bool parseNextMarkerRecord( istream *iFile, GeneticData *gd, char delim );
+        virtual bool parseNextGenotypeRecord( istream *iFile, GeneticData *gd, char delim );
+
+        virtual bool parseNextRecord( istream * iFile, GeneticData *gd, char delim ) {return true; }
+
+        int row_idx, col_idx;
+        vector<int> individ_indexes, marker_indexes;
+};
+
+}
+}
+
+#endif // INDIVIDUALGENOTYPEFILE_H

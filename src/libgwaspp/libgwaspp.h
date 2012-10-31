@@ -26,3 +26,30 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef BIOLIB_H
+#define BIOLIB_H
+
+#include "libgwasppConfig.h"
+
+#include "common.h"
+
+#include <iostream>
+#include <cstring>
+#include <fstream>
+
+#if PROCESSOR_WORD_SIZE == 64
+#define PWORD ulong
+#elif PROCESSOR_WORD_SIZE == 32
+#define PWORD uint
+#elif PROCESSOR_WORD_SIZE == 16
+#define PWORD ushort
+#else
+#error "Expected use on 32 or 64 bit processors"
+#endif
+
+struct StringPtrComparer {
+    bool operator() (const std::string * lhs, const std::string * rhs) const { return (lhs != rhs) && std::strcmp( lhs->c_str(), rhs->c_str()) < 0; }
+    bool operator() (const std::string & lhs, const std::string & rhs) const { return std::strcmp( lhs.c_str(), rhs.c_str()) < 0; }
+};
+
+#endif // VERSION_H

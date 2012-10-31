@@ -26,3 +26,67 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include "genetics/genotype/genotype_table.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+GenotypeTable *GenotypeTable::instance = NULL;
+
+GenotypeTable::GenotypeTable() {
+    //ctor
+}
+
+GenotypeTable *GenotypeTable::getInstance() {
+    if( instance == NULL ) {
+        instance = new GenotypeTable();
+    }
+    return instance;
+}
+
+void GenotypeTable::loadGenotypeTable( string &gt_file ) {
+}
+
+byte GenotypeTable::findEncodedGenotype( Genotype &gt ) throw() {
+    EncodedGenotype eg( gt, -1 );
+
+    if( (gtIterator = genos.find( eg )) != genos.end()) {
+        return gtIterator->second;
+    }
+
+    throw GenotypeMissingException();
+}
+
+Genotype GenotypeTable::getGenotype( byte encoding ) throw() {
+    if( encoding < 0 || encoding >= (int) genos.size()) {
+        throw libgwaspp::util::InvalidIndexException();
+    }
+
+    return index[encoding]->first;
+}
+
+byte GenotypeTable::addGenotype( EncodedGenotype &eg ) throw() {
+    if( (int)genos.size() >= 255) {
+        throw GenotypeTableFullException();
+    }
+    eg.second = ( byte )genos.size();
+    pair<GenotypeSet::iterator, bool> success = genos.insert( eg );
+    if( success.second ) {
+        index.push_back( success.first );
+        return eg.second;
+    }
+    return success.first->second;
+}
+
+void GenotypeTable::reset() {
+    index.clear();
+    genos.clear();
+}
+
+GenotypeTable::~GenotypeTable() {
+    //dtor
+    reset();
+}
+
+}
+}

@@ -26,3 +26,20 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include<iostream>
+
+#include "genetics/trait/trait.h"
+
+using namespace std;
+using namespace libgwaspp::genetics;
+
+int main() {
+
+    string name = "NAME";
+    string note = "NOTE";
+    Trait t(name, note, 0.5);
+
+    cout << t.getNote() << endl;
+
+	return 0;
+}

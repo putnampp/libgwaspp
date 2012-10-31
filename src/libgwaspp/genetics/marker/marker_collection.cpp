@@ -26,3 +26,67 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include "marker_collection.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+MarkerCollection::MarkerCollection() {
+    //ctor
+    alleles = new AlleleCollection();
+    chromosomes = new ChromosomeCollection();
+}
+
+const Marker *MarkerCollection::findMarker( string &id ) const {
+    LookupMap::const_iterator it = marker_lookup.find( &id );
+
+    if( it == marker_lookup.end() ) {
+        return NULL;
+    }
+    return markers[ it->second ];
+}
+
+int MarkerCollection::operator()( const string &id ) {
+    LookupMap::const_iterator it = marker_lookup.find( &id );
+
+    if( it == marker_lookup.end() ) {
+        return -1;
+    }
+    return it->second;
+}
+
+string MarkerCollection::operator()( int idx ) const {
+    return markers[ idx ]->getID();
+}
+
+const Marker *MarkerCollection::createMarker( string &id, string &chrom, uint start, uint end, double gPos, string &alls ) {
+    const Marker *m = findMarker( id );
+
+    if( m == NULL ) {
+        // create new Marker
+        Marker *m2 = new Marker( id, chromosomes->createChromosome( chrom ), start, end, gPos, alleles->findOrCreateAllele(alls) );
+
+        markers.push_back( m2 );
+        marker_lookup.insert( pair< const string *, int>( m2->getIDPtr(), (int) markers.size() - 1));
+
+        return m2;
+    }
+
+    return m;
+}
+
+MarkerCollection::~MarkerCollection() {
+    //dtor
+    for( vector< Marker * >::iterator it = markers.begin(); it != markers.end(); it++ ) {
+        delete *it;
+    }
+
+    markers.clear();
+    marker_lookup.clear();
+
+    delete alleles;
+    delete chromosomes;
+}
+
+}
+}

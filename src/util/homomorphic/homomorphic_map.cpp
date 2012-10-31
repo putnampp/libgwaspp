@@ -26,3 +26,18 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+ #include "homomorphic/homomorphic_map.h"
+
+namespace util {
+
+HomomorphicMap::HomomorphicMap()
+{
+    //ctor
+}
+
+HomomorphicMap::~HomomorphicMap()
+{
+    //dtor
+}
+
+}

@@ -26,3 +26,20 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef ALLELE_H
+#define ALLELE_H
+
+#include <iostream>
+
+namespace libgwaspp {
+namespace genetics {
+
+typedef std::string Allele;
+typedef char SNPAllele;
+
+typedef std::pair< SNPAllele, SNPAllele > SNP;
+
+}
+}
+
+#endif // ALLELE_H

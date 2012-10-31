@@ -26,3 +26,21 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef COMMON_GENOTYPE_FUNC_H
+#define COMMON_GENOTYPE_FUNC_H
+
+#include <iostream>
+#include <fstream>
+#include "genetics/genotype/common_genotype.h"
+
+using namespace std;
+
+namespace libgwaspp {
+namespace genetics {
+
+void printContingencyTable( const contingency_table & ct, ostream & out, bool include_header = false );
+
+}
+}
+
+#endif

@@ -26,3 +26,44 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef GENOTYPECOLLECTION_H
+#define GENOTYPECOLLECTION_H
+
+#include <iostream>
+#include <vector>
+#include <map>
+
+#include "libgwaspp.h"
+#include "genetics/genotype/genotype.h"
+
+using namespace std;
+
+namespace libgwaspp {
+namespace genetics {
+
+class GenotypeCollection {
+    public:
+        typedef map< const string *, GenotypeID, StringPtrComparer > LookupTable;
+
+        GenotypeCollection();
+
+        const Genotype * findGenotype( GenotypeID id ) { return genotypes[ id ]; }
+        const Genotype * findOrCreateGenotype( string & gt );
+
+        GenotypeID findOrCreateGenotypeID( string & gt );
+        GenotypeID getGenotypeID( string & gt );
+
+        virtual ~GenotypeCollection();
+    protected:
+    private:
+        LookupTable lookup;
+        vector< Genotype * > genotypes;
+
+        string last_gt;
+        GenotypeID last_gt_id;
+};
+
+}
+}
+
+#endif // GENOTYPECOLLECTION_H

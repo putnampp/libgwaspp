@@ -26,3 +26,33 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef ALLELELOOKUPTABLE_H
+#define ALLELELOOKUPTABLE_H
+
+#include <iostream>
+#include <vector>
+
+#include "libgwaspp.h"
+#include "genetics/marker/allele.h"
+#include "util/lookup_table/lookup_table.h"
+
+using namespace std;
+using namespace libgwaspp::util;
+
+namespace libgwaspp {
+namespace genetics {
+
+class AlleleLookupTable : LookupTable< Allele, short > {
+    public:
+        static AlleleLookupTable *getInstance();
+
+    private:
+        AlleleLookupTable() : LookupTable< Allele, short>() {}
+        static AlleleLookupTable *instance;
+
+};
+
+}
+}
+
+#endif // ALLELELOOKUPTABLE_H

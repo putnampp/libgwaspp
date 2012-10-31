@@ -26,3 +26,33 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef GENOTYPE_EXCEPTION_H
+#define GENOTYPE_EXCEPTION_H
+
+#include <exception>
+
+using namespace std;
+
+namespace libgwaspp {
+namespace genetics {
+
+class GenotypeMissingException : public exception {
+    public:
+        virtual const char* what() const throw() {
+            return "Genotype Not Found";
+        }
+    protected:
+    private:
+};
+
+class GenotypeTableFullException : public exception {
+    public:
+        virtual const char* what() const throw() {
+            return "Genotype Table is full";
+        }
+};
+
+}
+}
+
+#endif // GENOTYPE_EXCEPTION_H

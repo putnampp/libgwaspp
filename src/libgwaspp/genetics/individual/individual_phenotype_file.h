@@ -26,3 +26,42 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef INDIVIDUALPHENOTYPEFILE_H
+#define INDIVIDUALPHENOTYPEFILE_H
+
+#include <iostream>
+#include <fstream>
+
+#include "genetics/genetic_data.h"
+#include "genetics/genetic_data_file.h"
+#include "genetics/phenotype/phenotype_tree.h"
+#include "genetics/individual/individual_collection.h"
+#include "gzstream/gzstream.h"
+
+using namespace std;
+
+namespace libgwaspp {
+namespace genetics {
+
+class IndividualPhenotypeFile : public GeneticDataFile {
+    public:
+        IndividualPhenotypeFile( ) {}
+
+        bool populateGeneticData( string &filename, GeneticData  * gd, char delim = '\t');
+
+        virtual ~IndividualPhenotypeFile();
+    protected:
+
+        virtual bool parseHeader( istream * iFile, GeneticData *gd, char delim );
+        virtual bool parseNextMarkerRecord( istream *iFile, GeneticData *gd, char delim ) {return true; }
+        virtual bool parseNextGenotypeRecord( istream *iFile, GeneticData *gd, char delim ) { return true; }
+
+        virtual bool parseNextRecord( istream * iFile, GeneticData *gd, char delim );
+
+        string id, sex, mid, fid, age;
+};
+
+}
+}
+
+#endif // INDIVIDUALPHENOTYPEFILE_H

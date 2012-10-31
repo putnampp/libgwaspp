@@ -26,3 +26,53 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include "util/lookup_table/lookup_table.h"
+
+namespace util {
+
+//template< class T, class I>
+//I LookupTable< T, I >::getIndex( T &t ) throw() {
+//    IndexedElement ie( t, -1 );
+//    if(( eIter = elements.find( ie ) ) != elements.end() ) {
+//        return eIter->second;
+//    }
+//    throw NotFoundException();
+//}
+//
+//template< class T, class I >
+//T LookupTable<T, I>::getElement( I i ) throw() {
+//    if( i < 0 || i >= ( int ) elements.size() ) {
+//        throw InvalidIndexException();
+//    }
+//
+//    return indexes[i]->first;
+//}
+//
+//template< class T, class I >
+//I LookupTable<T, I>::addElement( T &t ) throw() {
+//    if(( uint )elements.size() >= max_elements || elements.size() >= elements.max_size() ) {
+//        throw OutOfBoundsException();
+//    }
+//
+//    IndexedElement ie( t, ( I ) elements.size() );
+//    pair< ElementSetIterator , bool> success = elements.insert( ie );
+//    if( success.second ) {
+//        indexes.push_back( success.first );
+//        return ie.second;
+//    }
+//    return success.first->second;
+//}
+//
+//template< class T, class I >
+//void LookupTable<T, I>::reset() {
+//    this->elements.clear();
+//    this->indexes.clear();
+//}
+
+//template< class T, class I >
+//LookupTable<T, I>::~LookupTable() {
+//    //dtor
+//    reset();
+//}
+
+}

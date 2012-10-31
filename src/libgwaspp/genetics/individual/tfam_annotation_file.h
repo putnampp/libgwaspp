@@ -26,3 +26,36 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef TFAMANNOTATIONFILE_H
+#define TFAMANNOTATIONFILE_H
+
+#include <fstream>
+#include <set>
+
+#include "genetics/genetic_data_file.h"
+
+using namespace std;
+
+namespace libgwaspp {
+namespace genetics {
+
+class TFamAnnotationFile : public GeneticDataFile {
+public:
+    TFamAnnotationFile();
+
+    virtual bool populateGeneticData( string &filename, GeneticData   *gd, char delim = '\t' );
+
+    virtual ~TFamAnnotationFile();
+
+protected:
+    virtual bool parseHeader( istream *iFile, GeneticData *gd, char delim ) {return true; }
+    virtual bool parseNextMarkerRecord( istream *iFile, GeneticData *gd, char delim ) { return true; }
+    virtual bool parseNextGenotypeRecord( istream *iFile, GeneticData *gd, char delim ) { return true; }
+
+    virtual bool parseNextRecord( istream * iFile, GeneticData *gd, char delim ) {return true; }
+};
+
+}
+}
+
+#endif // TFAMANNOTATIONFILE_H

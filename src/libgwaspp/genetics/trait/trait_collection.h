@@ -26,3 +26,27 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef TRAITCOLLECTION_H
+#define TRAITCOLLECTION_H
+
+#include <vector>
+
+#include "genetics/trait/trait.h"
+
+using namespace std;
+
+namespace libgwaspp {
+namespace genetics {
+
+class TraitCollection {
+    public:
+        TraitCollection();
+        virtual ~TraitCollection();
+    protected:
+    private:
+};
+
+}
+}
+
+#endif // TRAITCOLLECTION_H

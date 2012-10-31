@@ -26,3 +26,54 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef COMPUTATIONENGINE_H
+#define COMPUTATIONENGINE_H
+
+#include <iostream>
+#include <fstream>
+#include <memory>
+#include <set>
+
+#include "genetics/analyzable/case_control_set.h"
+#include "genetics/genetic_data.h"
+#include "util/time/timing.h"
+
+using namespace std;
+using namespace libgwaspp::genetics;
+
+namespace libgwaspp {
+namespace algorithms {
+
+struct BasicInput {
+    GeneticData *gd;
+    set<string> * marker_ids, * individual_ids;
+
+    BasicInput() : gd( NULL ), marker_ids( new set<string>() ), individual_ids( new set<string>() ) {}
+    BasicInput( GeneticData *g, set<string> * m_ids, set<string> * i_ids ) : gd( g ), marker_ids( m_ids ), individual_ids( i_ids ) {}
+    BasicInput( BasicInput *bi ) : gd( bi->gd ), marker_ids( bi->marker_ids ), individual_ids( bi->individual_ids ) {}
+
+    virtual ~BasicInput() { marker_ids->clear(); individual_ids->clear(); }
+};
+
+struct IndexedInput : BasicInput {
+    auto_ptr< set<int> > midx, iidx;
+
+    IndexedInput( BasicInput *bi ) : BasicInput( bi ), midx( new set<int>() ), iidx( new set<int>() ) {}
+
+    ~IndexedInput() { midx->clear(); iidx->clear(); }
+};
+
+struct CaseControlInput : BasicInput {
+    CaseControlSet ccs;
+
+    CaseControlInput( BasicInput *bi ) : BasicInput( bi ), ccs( gd->getGenotypeTable()->getColumnSet() ) {}
+};
+
+void compute( void ( *f )( void *, void * ), void *input, void *output );
+
+void compute( void ( *f )( GeneticData *, ostream *), GeneticData *gd, ostream * out );
+
+}
+}
+
+#endif // COMPUTATIONENGINE_H

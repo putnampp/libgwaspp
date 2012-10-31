@@ -26,3 +26,14 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include "genetics/chromosome/chromosomal_interval.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+//Chromosome ChromosomalInterval::getChromosome() {
+//    return ChromosomeLookupTable::getInstance()->getChromosome(chromIdx);
+//}
+
+}
+}

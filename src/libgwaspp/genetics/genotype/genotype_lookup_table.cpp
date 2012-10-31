@@ -26,3 +26,27 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include "genetics/genotype/genotype_lookup_table.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+GenotypeLookupTable *GenotypeLookupTable::instance = NULL;
+
+GenotypeLookupTable::GenotypeLookupTable() : LookupTable<Genotype>() {
+    //ctor
+}
+
+GenotypeLookupTable *GenotypeLookupTable::getInstance() {
+    if( instance == NULL ) {
+        instance = new GenotypeLookupTable();
+    }
+    return instance;
+}
+
+GenotypeLookupTable::~GenotypeLookupTable() {
+    //dtor
+}
+
+}
+}

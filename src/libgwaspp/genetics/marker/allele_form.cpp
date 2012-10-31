@@ -26,3 +26,65 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include "genetics/marker/allele_form.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+AlleleForm::AlleleForm( string &alleles, char delim ) {
+    //ctor
+    initialize( alleles, delim );
+}
+
+ulong AlleleForm::computeHashID( string &id ) {
+    ulong hash = 0;
+
+    for( string::iterator it = id.begin(); it != id.end(); it++ ) {
+        hash = ( hash << 5 ) ^( hash >> 22 ) ^ *it;
+    }
+
+    return hash;
+}
+
+void AlleleForm::initialize( string &alls, char delim ) {
+    this->id = computeHashID( alls );
+    istringstream iss( alls );
+    string tok;
+
+    if( delim == 0 ) {
+        char val;
+        while( !iss.eof() ) {
+            val = ( char )iss.get();
+            alleles.push_back( string( 1, val ) );
+            iss.peek();
+        }
+    } else {
+        while( getline( iss, tok, delim ) ) {
+            alleles.push_back( tok );
+        }
+    }
+}
+
+void AlleleForm::addAllele( string &a ) {
+    alleles.push_back( a );
+}
+
+bool AlleleForm::operator==( const AlleleForm &af ) {
+    if( this->alleles.size() == af.alleles.size() ) {
+        for( vector< string >::const_iterator it = this->alleles.begin(), it2 = af.alleles.begin(); it != this->alleles.end(); it++, it2++ ) {
+            if( *it != *it2 ) return false;
+        }
+        return true;
+    }
+    return false;
+}
+
+
+
+AlleleForm::~AlleleForm() {
+    //dtor
+    alleles.clear();
+}
+
+}
+}

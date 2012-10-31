@@ -26,3 +26,18 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef VALIDATE_TEST_H
+#define VALIDATE_TEST_H
+
+#include <iostream>
+#include <fstream>
+
+#include "algorithms/computation_engine.h"
+
+using namespace std;
+using namespace libgwaspp::algorithms;
+
+void printAllCalls( void * input, void * output );
+void printAllGenotypes( void * input, void * output );
+
+#endif

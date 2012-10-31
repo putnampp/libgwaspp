@@ -26,3 +26,43 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include "genetics/genotype/genotype_record.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+GenotypeRecord::GenotypeRecord( map< GenotypeID, EncodedID > &h, vector< EncodedID > &d) {
+    //ctor
+    initialize( h, d );
+}
+
+void GenotypeRecord::initialize( map< GenotypeID, EncodedID > &h, vector< EncodedID > &d ) {
+    int header_size = (int) h.size() * sizeof(GenotypeID);
+    int data_size = (int) d.size() * sizeof(EncodedID);
+    int tot_mem_size = header_size + data_size + 1; // + 1 => to gaurantee NULL terminated
+
+    mem_block = new char[ tot_mem_size ];
+
+    header = reinterpret_cast< GenotypeID * >( mem_block );
+    data = reinterpret_cast< EncodedID * >(mem_block + header_size);
+    data_end = reinterpret_cast< EncodedID * >( mem_block + tot_mem_size -1 );
+
+    *data_end = 0;   // to gaurantee NULL terminated
+
+    for( map< GenotypeID, EncodedID >::iterator it = h.begin(); it != h.end(); it++ ) {
+        header[ it->second ] = it->first;
+    }
+
+    int idx = 0;
+    for( vector< EncodedID >::iterator it = d.begin(); it != d.end(); it++, idx++) {
+        data[idx] = *it;
+    }
+}
+
+GenotypeRecord::~GenotypeRecord() {
+    //dtor
+    delete [] mem_block;
+}
+
+}
+}

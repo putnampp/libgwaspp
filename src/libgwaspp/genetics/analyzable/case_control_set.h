@@ -26,3 +26,64 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+ #ifndef CASECONTROLSET_H
+#define CASECONTROLSET_H
+
+#include <set>
+#include <cstring>
+#include <cassert>
+
+#include "libgwaspp.h"
+
+#include "util/index_set/indexer.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+using namespace std;
+using namespace util;
+
+class CaseControlSet
+{
+    public:
+        CaseControlSet( const indexer * _idx);
+
+        const indexer * getPossibleIndices() { return possible_indices; }
+
+        uint getMaximumIndex() const { return max_index; }
+        uint getCaseCount() const { return case_count; }
+        uint getControlCount() const { return ctrl_count; }
+        uint getTotalCount() const { return total_count; }
+
+        void setCases( const set<int> & case_idx );
+        void setControls( const set<int> & ctrl_idx );
+
+        void setAllAsCases();
+        void setAllAsControls();
+
+        const ushort * control_begin() { return control_set; }
+        const ushort * control_end() { return control_set_end; }
+
+        const ushort * case_begin() { return case_set; }
+        const ushort * case_end() { return case_set_end; }
+
+        inline bool isCase( uint idx );
+        inline bool isControl( uint idx );
+
+        void reset();
+
+        virtual ~CaseControlSet();
+    protected:
+        const indexer * possible_indices;
+        uint block_count, max_index, byte_count;
+        ushort * buffer, * control_set, * case_set;
+        ushort * control_set_end, *case_set_end;
+
+        uint case_count, ctrl_count, total_count;
+
+};
+
+}
+}
+
+#endif // CASECONTROLSET_H

@@ -26,3 +26,36 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef INVALIDINDEXEXCEPTION_H
+#define INVALIDINDEXEXCEPTION_H
+
+#include <exception>
+
+using namespace std;
+
+namespace util {
+
+class InvalidIndexException : public exception {
+    public:
+        virtual const char *what() const throw() {
+            return "Invalid Index Exception";
+        }
+};
+
+class NotFoundException : public exception {
+    public:
+        virtual const char *what() const throw() {
+            return "Not Found";
+        }
+};
+
+class OutOfBoundsException : public exception {
+    public:
+        virtual const char *what() const throw() {
+            return "Out of Bounds exception";
+        }
+};
+
+}
+
+#endif // INVALIDINDEXEXCEPTION_H

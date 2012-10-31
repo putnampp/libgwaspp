@@ -26,3 +26,37 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#ifndef TPEDGENOTYPEFILE_H
+#define TPEDGENOTYPEFILE_H
+
+#include <iostream>
+#include <sstream>
+
+#include "genetics/individual/individual_genotype_file.h"
+#include "genetics/genetic_data.h"
+
+using namespace std;
+
+namespace libgwaspp {
+namespace genetics {
+
+class TpedGenotypeFile : public IndividualGenotypeFile {
+public:
+    TpedGenotypeFile();
+
+    virtual ~TpedGenotypeFile();
+protected:
+        void guessExpectedSizes( istream *iFile, int &mcnt, int &gt_width, char delim );
+
+        bool parseHeader( istream *iFile, GeneticData *gd, char delim );
+        bool parseNextMarkerRecord( istream *iFile, GeneticData *gd, char delim );
+        bool parseNextGenotypeRecord( istream *iFile, GeneticData *gd, char delim );
+
+        char *buffer, *tmp_buffer;
+        int buffer_size;
+};
+
+}
+}
+
+#endif // TPEDGENOTYPEFILE_H

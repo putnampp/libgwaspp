@@ -26,3 +26,50 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
+#include "genetics/chromosome/chromosome_collection.h"
+
+namespace libgwaspp {
+namespace genetics {
+
+ChromosomeCollection::ChromosomeCollection() {
+    //ctor
+}
+
+const Chromosome * ChromosomeCollection::findChromosome( string &name ) const {
+    LookupTable::const_iterator it = chrom_lookup.find( &name );
+
+    if( it == chrom_lookup.end() ) {
+        return NULL;
+    }
+
+    return chroms[ it->second ];
+}
+
+ChromosomeID ChromosomeCollection::createChromosome( string &name, uint length ) {
+    LookupTable::iterator it = chrom_lookup.find( &name );
+
+    if( it == chrom_lookup.end() ) {
+        Chromosome * c = new Chromosome( name, length );
+
+        pair< LookupTable::iterator, bool> success =
+            chrom_lookup.insert( pair< const string *, ChromosomeID >( c->getNamePtr(), (ChromosomeID) chroms.size()) );
+        chroms.push_back( c );
+
+        return success.first->second;
+    }
+
+    return it->second;
+}
+
+ChromosomeCollection::~ChromosomeCollection() {
+    //dtor
+    for( vector< Chromosome * >::iterator it = chroms.begin(); it != chroms.end(); it++) {
+        delete *it;
+    }
+
+    chrom_lookup.clear();
+    chroms.clear();
+}
+
+}
+}
