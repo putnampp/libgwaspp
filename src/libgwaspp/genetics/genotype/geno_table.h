@@ -39,6 +39,7 @@
 #include "genetics/genotype/genotype.h"
 #include "genetics/genotype/pairwise_marker_analyzable.h"
 #include "genetics/genotype/single_marker_analyzable.h"
+#include "genetics/genotype/case_control_selectable.h"
 
 namespace libgwaspp {
 namespace genetics {
@@ -95,7 +96,7 @@ union DataBlock {
 
 #endif
 
-class GenoTable : public util::Table < DataBlock >, public PairwiseMarkerAnalyzable, public SingleMarkerAnalyzable {
+class GenoTable : public util::Table < DataBlock >, public PairwiseMarkerAnalyzable, public SingleMarkerAnalyzable, public CaseControlSelectable {
 public:
     GenoTable( util::indexer *markers, util::indexer *individuals ) : util::Table< DataBlock >( markers, individuals ), data_per_block( 0 ), blocks_per_row( 0 ), total_block_count( 0 ), bytes_per_row( 0 ) {}
 
@@ -108,6 +109,8 @@ public:
 
     inline const char *getCallAt( uint marker_idx, uint individ_idx ) { return decodeGenotype( getGenotypeAt( marker_idx, individ_idx )); }
     DataBlock getGenotypeAt( uint marker_idx, uint individ_idx ) { return (*this)( marker_idx, individ_idx ); }
+
+    //virtual void selectCaseControl( CaseControlSet& ccs ) = 0;
 
     uint getPossibleGenotypeCount() const { return possible_genotypes_size; }
     virtual ushort *possible_genotypes_begin() const { return beg; }

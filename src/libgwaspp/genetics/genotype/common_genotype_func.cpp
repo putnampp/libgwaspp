@@ -44,5 +44,12 @@ void printContingencyTable( const contingency_table & ct, ostream & out, bool in
     out << ct.n6 << "\t" << ct.n7 << "\t" << ct.n8 << endl;
 }
 
+void printFrequencyDistribution( const frequency_table & ft, ostream & out, bool include_header ) {
+    if( include_header ) {
+        out << "AA\tAa\taa\n";
+    }
+    out << dec << ft.aa << "\t" << ft.ab << "\t" << ft.bb << endl;
+}
+
 }
 }

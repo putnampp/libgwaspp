@@ -70,7 +70,6 @@ struct CaseControlInput : BasicInput {
 };
 
 void compute( void ( *f )( void *, void * ), void *input, void *output );
-
 void compute( void ( *f )( GeneticData *, ostream *), GeneticData *gd, ostream * out );
 
 }

@@ -73,6 +73,7 @@ class CompressedGenotypeTable : public GenoTable {
 
         void getGenotypeDistribution( uint rIdx, GenotypeDistribution &dist );
         void getCaseControlGenotypeDistribution( uint rIdx, CaseControlSet & ccs, CaseControlGenotypeDistribution & ccgd );
+        void getCaseControlGenotypeDistribution( uint rIdx, CaseControlGenotypeDistribution & ccgd ) { assert(false); }
 
         void selectMarkerPair( uint rIdx1, uint rIdx2 );
 
@@ -81,6 +82,8 @@ class CompressedGenotypeTable : public GenoTable {
             assert( false );
         }
         void getCaseControlContingencyTable( uint rIdx1, uint rIdx2, CaseControlSet & ccs, CaseControlContingencyTable & ccct );
+
+        void selectCaseControl( CaseControlSet& ccs ) { assert(false); }
 
         virtual ~CompressedGenotypeTable();
     protected:

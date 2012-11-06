@@ -1,5 +1,4 @@
-/*
-* Copyright (c) 2012, Patrick Putnam
+/* Copyright (c) 2012, Patrick Putnam
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -26,50 +25,20 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
-#ifndef MAF_FUNC_H
-#define MAF_FUNC_H
+#ifndef CASE_CONTROL_SELECTABLE_H_
+#define CASE_CONTROL_SELECTABLE_H_
 
-#include <fstream>
-
-#include "genetics/genetic_data.h"
 #include "genetics/genotype/geno_table.h"
-#include "util/time/timing.h"
-
-#include "algorithms/computation_engine.h"
+#include "genetics/analyzable/case_control_set.h"
 
 namespace libgwaspp {
-namespace algorithms {
+namespace genetics {
 
-using namespace libgwaspp::genetics;
-using namespace std;
-
-inline void maf( const frequency_table & ft, double & tot, double & maf ) {
-    tot = ft.aa;
-    maf = 2.0 * tot;
-    tot += ft.ab;
-    maf += ft.ab;
-    tot += ft.bb;
-    maf /= tot;
-    if( maf < 0.5 ) { maf = 1.0 - maf; }
-}
-
-const int POSSIBLE_ENC = 1 << ( 8 * sizeof( ushort ) );
-
-void computeMAF( GenoTable &gt );
-void computeMAF( GeneticData *gd, const set<string> & row_ids, const set<string> & column_ids );
-
-void maf_all( void *input, void *output );
-void maf_from_distribution( void *input, void *output );
-
-void maf( void *input, void *output );
-void maf_all( IndexedInput &input, void *output );
-
-void compute_maf_perform( GeneticData *gd, ostream *out);
-
-void select_cc_maf( GeneticData *gd, ostream *out);
-void inline_cc_maf( GeneticData *gd, ostream *out);
+struct CaseControlSelectable {
+    virtual void selectCaseControl( CaseControlSet & ccs ) = 0;
+};
 
 }
 }
 
-#endif // MAF_FUNC_H
+#endif

@@ -38,8 +38,8 @@ using namespace std;
 namespace libgwaspp {
 namespace genetics {
 
+void printFrequencyDistribution( const frequency_table & ft, ostream & out, bool include_header = false );
 void printContingencyTable( const contingency_table & ct, ostream & out, bool include_header = false );
-
 }
 }
 

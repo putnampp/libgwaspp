@@ -185,26 +185,14 @@ void maf_from_distribution( void *input, void *output ) {
     }
 
     frequency_table &dist = *gt.getGenotypeDistribution();
-//    header_table &header = *gt.getGenotypeDistributionHeader();
-
-//    INIT_LAPSE_TIME;
 
     for( r_it = 0; r_it < marker_count; ++r_it ) {
-//        RECORD_START;
         gt.selectMarker( r_it );
-//        RECORD_STOP;
 
         total = dist.xx;
         total += dist.aa;
         total += dist.ab;
         total += dist.bb;
-
-//        cout << r_it <<  ". " << gt.decodeGenotype( header.xx ) << " - " << dist.xx << "; ";
-//        cout << gt.decodeGenotype( header.aa ) << " - " << dist.aa << "; ";
-//        cout << gt.decodeGenotype( header.ab ) << " - " << dist.ab << "; ";
-//        cout << gt.decodeGenotype( header.bb ) << " - " << dist.bb << endl;
-//
-//        PRINT_LAPSE( "SELECT MARKER: " );
 
         assert( total == individ_count );
     }
@@ -239,23 +227,60 @@ void compute_maf_perform( GeneticData *gd, ostream *out) {
 
     GenotypeDistribution dist;
     const frequency_table &ft = *dist.getDistribution();
-    double tot, maf;
+    double _tot, _maf;
 
     for( int i = 0; i < marker_count; ++i ) {
         gt.getGenotypeDistribution( i, dist );
+        maf( ft, _tot, _maf );
+    }
+}
 
-        tot = ft.aa;
-        maf = 2.0 * tot;
+void select_cc_maf( GeneticData *gd, ostream *out ) {
+    int marker_count = gd->getGenotypedMarkersCount();
+    GenoTable &gt = *gd->getGenotypeTable();
 
-        tot += ft.ab;
-        maf += ft.ab;
+    CaseControlGenotypeDistribution ccgd;
+    const frequency_table &_cases = *ccgd.getCaseDistribution();
+    const frequency_table &_ctrls = *ccgd.getControlDistribution();
+    double _tot, _maf;
 
-        tot += ft.bb;
+    INIT_LAPSE_TIME;
+    RECORD_START;
+    gt.selectCaseControl( *gd->getCaseControlSet() );
+    RECORD_STOP;
+    PRINT_LAPSE( *out, "Time to select Case/Controls: ");
 
-        maf /= tot;
-        if( maf < 0.5 ) {
-            maf = 1.0 - maf;
-        }
+    for( int i = 0; i < marker_count; ++i ) {
+        RECORD_START;
+        gt.getCaseControlGenotypeDistribution( i, ccgd );
+        RECORD_STOP;
+        PRINT_LAPSE( *out, "Time to compute case/control (select) frequencies: " );
+
+        maf( _cases, _tot, _maf );
+        maf( _ctrls, _tot, _maf ); 
+    }
+}
+
+void inline_cc_maf( GeneticData *gd, ostream *out ) {
+    int marker_count = gd->getGenotypedMarkersCount();
+    GenoTable &gt = *gd->getGenotypeTable();
+
+    CaseControlGenotypeDistribution ccgd;
+    const frequency_table &_cases = *ccgd.getCaseDistribution();
+    const frequency_table &_ctrls = *ccgd.getControlDistribution();
+    double _tot, _maf;
+
+    CaseControlSet ccs = *gd->getCaseControlSet();
+
+    INIT_LAPSE_TIME;
+    for( int i = 0; i < marker_count; ++i ) {
+        RECORD_START;
+        gt.getCaseControlGenotypeDistribution( i, ccs, ccgd );
+        RECORD_STOP;
+        PRINT_LAPSE( *out, "Time to compute case/control (inline) frequencies: " );
+        
+        maf( _cases, _tot, _maf );
+        maf( _ctrls, _tot, _maf );
     }
 }
 

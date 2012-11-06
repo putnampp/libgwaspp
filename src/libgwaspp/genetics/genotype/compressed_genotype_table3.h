@@ -233,7 +233,7 @@ inline void IncrementFrequencyValue( frequency_table &ft, ushort aa, ushort ab, 
 
 class CompressedGenotypeTable3 : public GenoTable {
 public:
-    CompressedGenotypeTable3( indexer *markers, indexer *individs ) : GenoTable( markers, individs ), gt_lookup(NULL) {
+    CompressedGenotypeTable3( indexer *markers, indexer *individs ) : GenoTable( markers, individs ), gt_lookup(NULL), m_cases(NULL), m_controls(NULL) {
         initialize();
     }
 
@@ -252,8 +252,10 @@ public:
 
     void getGenotypeDistribution( uint rIdx, GenotypeDistribution &dist );
     void getCaseControlGenotypeDistribution( uint rIdx, CaseControlSet &ccs, CaseControlGenotypeDistribution &ccgd );
+    void getCaseControlGenotypeDistribution( uint rIdx, CaseControlGenotypeDistribution &ccgd );
 
     void selectMarkerPair( uint maIdx, uint mbIdx );
+    void selectCaseControl( CaseControlSet &ccs );
 
     void getContingencyTable( uint rIdx1, uint rIdx2, ContingencyTable &ct );
     void getContingencyTable( uint rIdx1, uint rIdx2, ushort *column_set, ContingencyTable &ct );
@@ -271,6 +273,8 @@ protected:
     DataBlock **lookup;
 
     genotype_counts count_lookup[ 0x10000 ];
+
+    DataBlock *m_cases, *m_controls;
 };
 
 uint ones16( register uint x );

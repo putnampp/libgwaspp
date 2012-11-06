@@ -138,6 +138,8 @@ public:
     virtual void getGenotypeDistribution( uint rIdx, GenotypeDistribution &dist ) = 0;
     virtual void getCaseControlGenotypeDistribution( uint rIdx, CaseControlSet &ccs, CaseControlGenotypeDistribution &ccgd ) = 0;
 
+    virtual void getCaseControlGenotypeDistribution( uint rIdx, CaseControlGenotypeDistribution &ccgd ) = 0;
+
     virtual ~SingleMarkerAnalyzable() {}
 protected:
     void resetSelectedMarker() {

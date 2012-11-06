@@ -103,6 +103,9 @@ const string TEST_EPISTASIS_DEBUG_KEY = "epi-debug";
 const string TEST_DISTRIBUTION_PERFORMANCE_KEY = "dist-perform";
 const string TEST_DISTRIBUTION_DEBUG_KEY = "dist-debug";
 
+const string TEST_CC_SELECT_DIST_PERFORMANCE_KEY = "select-cc-maf";
+const string TEST_CC_INLINE_DIST_PERFORMANCE_KEY = "inline-cc-maf";
+
 const string VALIDATE_CALL_KEY = "valid-calls";
 const string VALIDATE_GENO_KEY = "valid-geno";
 
@@ -204,6 +207,14 @@ int main( int argc, char **argv ) {
         compute ( EpistasisPerformance,  ( void * ) &inp_all, ( void * ) out );
     }
 
+    if( vm.count( TEST_CC_INLINE_DIST_PERFORMANCE_KEY ) ) {
+        compute ( inline_cc_maf, &*gd, out );
+    }
+
+    if( vm.count( TEST_CC_SELECT_DIST_PERFORMANCE_KEY ) ) {
+        compute ( select_cc_maf, &*gd, out );
+    }
+
     marker_ids->clear();
     individual_ids->clear();
 
@@ -238,6 +249,8 @@ bool parseArguments( int argc, char **argv, po::variables_map &vm ) {
     ((TEST_EPISTASIS_PERFORMANCE_KEY).c_str(), "Performance test of Epistasis algorithm")
     ((TEST_EPISTASIS_DEBUG_KEY).c_str(), "Build and Print Case/Control Contingency Tables for Epistasis analysis" )
     ((TEST_DISTRIBUTION_PERFORMANCE_KEY).c_str(), "Performance test of Genotype Distribution table")
+    ((TEST_CC_SELECT_DIST_PERFORMANCE_KEY).c_str(), "Performance test of Case/Control Genotype Distributions; Select C/C first, then compute MAF")
+    ((TEST_CC_INLINE_DIST_PERFORMANCE_KEY).c_str(), "Performance test of Case/Control Genotype Distributions; Compute MAF using C/C inline")
     ;
 
     po::options_description validate( "Validations" );

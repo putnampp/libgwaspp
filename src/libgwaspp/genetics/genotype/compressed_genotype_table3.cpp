@@ -48,10 +48,22 @@ void CompressedGenotypeTable3::initialize() {
 
     data_per_block = ( BITS_PER_BLOCK ) / bits_per_data;
 
-    blocks_per_row = max_column / data_per_block + ((( max_column % data_per_block ) > 0 ) ? 1 : 0 ) + 1;
+    // always pad the blocks per row by 1.
+    // safe assumption that max_columns will not likely be evenly divisible by data_per_block 
+    blocks_per_row = max_column / data_per_block + 1;
+    int block_bit_width = (sizeof(DataBlock) << 3);
+    assert( (PROCESSOR_WORD_SIZE % block_bit_width) == 0 );
+
+    // further pad the number of data blocks per row for processor word size efficiency
+    int block_per_pword = (PROCESSOR_WORD_SIZE / block_bit_width);
+    if( block_per_pword > 1 && blocks_per_row % block_per_pword ) {
+        blocks_per_row += ( block_per_pword - (blocks_per_row % block_per_pword));
+    }
+
+    // finally, add an additional block for genotype headers
+    ++blocks_per_row;
     total_block_count = blocks_per_row * max_row;
     bytes_per_row = blocks_per_row * BYTES_PER_BLOCK;
-
     data_size = total_block_count * BYTES_PER_BLOCK;
 
     cout << "Data per block: " << data_per_block << endl;
@@ -374,6 +386,7 @@ DataBlock CompressedGenotypeTable3::operator()( int r, int c ) {
     return db;
 }
 
+
 void CompressedGenotypeTable3::selectMarker( uint rIdx ) {
     if( rIdx != current_dist_rIdx ) {
         resetSelectedMarker();
@@ -410,6 +423,7 @@ void CompressedGenotypeTable3::selectMarker( uint rIdx ) {
         row_selected = true;
     }
 }
+
 
 void CompressedGenotypeTable3::selectMarkerPair( uint rIdx1, uint rIdx2 ) {
     if( !(( maIdx == rIdx1 && mbIdx == rIdx2 ) || ( maIdx == rIdx2 && mbIdx == rIdx1 ) ) ) {
@@ -484,6 +498,44 @@ void CompressedGenotypeTable3::selectMarkerPair( uint rIdx1, uint rIdx2 ) {
     }
 }
 
+
+void CompressedGenotypeTable3::selectCaseControl( CaseControlSet & ccs ) {
+    if ( m_cases == NULL ) {
+        m_cases = new DataBlock[data_size]; 
+    }
+
+    if ( m_controls == NULL ) {
+        m_controls = new DataBlock[data_size]; 
+    }
+
+    // Copy contents of data into case and controls
+    memcpy( m_cases, data, data_size );
+    memcpy( m_controls, data, data_size );
+
+    // Mask out cases and controls
+    const PWORD *case_ptr = reinterpret_cast< const PWORD * >( ccs.case_begin() );
+    const PWORD *ctrl_ptr = reinterpret_cast< const PWORD * >( ccs.control_begin() );
+
+    const PWORD *tmp_case, *tmp_ctrl;
+
+    // for every row
+    for( uint i = 0, offset = 1; i < (uint)max_row; ++i, offset += blocks_per_row ) {
+        // locate the start of the data segment for each row 
+        PWORD *case_data = reinterpret_cast< PWORD * >( m_cases + offset );
+        PWORD *ctrl_data = reinterpret_cast< PWORD * >( m_controls + offset );
+
+        // reset the mask pointers
+        tmp_case = case_ptr;
+        tmp_ctrl = ctrl_ptr;
+        // for every data block
+        for( uint j = 1; j < blocks_per_row; j += BLOCKS_PER_UNIT ) {
+            // mask out all unnecessary data columns
+            *case_data++ &= *tmp_case++;
+            *ctrl_data++ &= *tmp_ctrl++;
+        } 
+    }
+}
+
 void CompressedGenotypeTable3::getGenotypeDistribution( uint rIdx, GenotypeDistribution &dist ) {
     PWORD *tmp_data = reinterpret_cast< PWORD * >(data + rIdx * blocks_per_row + 1);
     PWORD val, _aa, _ab, _bb;
@@ -491,13 +543,16 @@ void CompressedGenotypeTable3::getGenotypeDistribution( uint rIdx, GenotypeDistr
     frequency_table joint_gt;
     ResetFrequencyTable(joint_gt);
 
-    for( uint i = BLOCKS_PER_UNIT + 1; i < blocks_per_row; i += BLOCKS_PER_UNIT ) {
+    for( uint i = 1; i < blocks_per_row; i += BLOCKS_PER_UNIT ) {
         val = *tmp_data++;
 
         DecodeBitStrings(val, _aa, _ab, _bb);
         IncrementFrequencyValue(joint_gt, _aa, _ab, _bb);
     }
 
+    /*
+     * added processor width padding to data blocks per row
+     * as a result ther should no longer be any tails
     PWORD tail_end = ( max_column & TAIL_END );
     if( tail_end > 0 ) {
         val = *tmp_data++;
@@ -505,6 +560,7 @@ void CompressedGenotypeTable3::getGenotypeDistribution( uint rIdx, GenotypeDistr
         DecodeBitStrings(val, _aa, _ab, _bb);
         IncrementFrequencyValue(joint_gt, _aa, _ab, _bb);
     }
+    */
 
     dist.setDistribution( joint_gt );
 }
@@ -516,12 +572,14 @@ void CompressedGenotypeTable3::getCaseControlGenotypeDistribution( uint rIdx, Ca
     PWORD _aa, _bb, _ab;
 
     frequency_table case_gt, ctrl_gt;
+    ResetFrequencyTable( case_gt );
+    ResetFrequencyTable( ctrl_gt );
 
     const PWORD *case_ptr = reinterpret_cast< const PWORD * >( ccs.case_begin() );
     const PWORD *ctrl_ptr = reinterpret_cast< const PWORD * >( ccs.control_begin() );
 
     // slip header block
-    for( uint i = BLOCKS_PER_UNIT + 1; i < blocks_per_row; i += BLOCKS_PER_UNIT ) {
+    for( uint i = 1; i < blocks_per_row; i += BLOCKS_PER_UNIT ) {
         val = *tmp_data++;
         case_val = val & *case_ptr++;
         ctrl_val = val & *ctrl_ptr++;
@@ -533,6 +591,7 @@ void CompressedGenotypeTable3::getCaseControlGenotypeDistribution( uint rIdx, Ca
         IncrementFrequencyValue(ctrl_gt, _aa, _ab, _bb);
     }
 
+/*
     PWORD tail_end = ( max_column & TAIL_END );
 
     if( tail_end > 0 ) {
@@ -546,6 +605,33 @@ void CompressedGenotypeTable3::getCaseControlGenotypeDistribution( uint rIdx, Ca
 
         DecodeBitStrings( ctrl_val, _aa, _ab, _bb );
         IncrementFrequencyValue(ctrl_gt, _aa, _ab, _bb);
+    }
+*/
+    ccgd.setCaseDistribution(case_gt);
+    ccgd.setControlDistribution(ctrl_gt);
+}
+
+void CompressedGenotypeTable3::getCaseControlGenotypeDistribution( uint rIdx, CaseControlGenotypeDistribution &ccgd ) {
+    ulong offset = rIdx * blocks_per_row + 1;
+    PWORD *tmp_case_data = reinterpret_cast< PWORD * >( m_cases + offset );
+    PWORD *tmp_ctrl_data = reinterpret_cast< PWORD * >( m_controls + offset );
+
+    PWORD val, case_val, ctrl_val;
+    PWORD _aa, _ab, _bb;
+
+    frequency_table case_gt, ctrl_gt;
+    ResetFrequencyTable( case_gt );
+    ResetFrequencyTable( ctrl_gt );
+
+    for( uint i = 1; i < blocks_per_row; i += BLOCKS_PER_UNIT ) {
+        case_val = *tmp_case_data++;
+        ctrl_val = *tmp_ctrl_data++;
+
+        DecodeBitStrings(case_val, _aa, _ab, _bb );
+        IncrementFrequencyValue(case_gt, _aa, _ab, _bb );
+
+        DecodeBitStrings(ctrl_val, _aa, _ab, _bb );
+        IncrementFrequencyValue( ctrl_gt, _aa, _ab, _bb);
     }
 
     ccgd.setCaseDistribution(case_gt);
@@ -567,7 +653,7 @@ void CompressedGenotypeTable3::getContingencyTable( uint rIdx1, uint rIdx2, Cont
     register PWORD a_aa, a_bb, b_aa, b_bb, a_ab, b_ab;
     PWORD tmp_val;
 
-    for( uint i = BLOCKS_PER_UNIT + 1; i < blocks_per_row; i += BLOCKS_PER_UNIT ) {
+    for( uint i = 1; i < blocks_per_row; i += BLOCKS_PER_UNIT ) {
         a_val = *ma_tmp_data++;
         b_val = *mb_tmp_data++;
 
@@ -584,7 +670,7 @@ void CompressedGenotypeTable3::getContingencyTable( uint rIdx1, uint rIdx2, Cont
         AddToContingency( contingency.n7, tmp_val, a_bb, b_ab );
         AddToContingency( contingency.n8, tmp_val, a_bb, b_bb );
     }
-
+/*
     PWORD tail_end = ( max_column & TAIL_END );
     if( tail_end > 0 ) {
         tmp_val = ( 0xFFFFFFFFFFFFFFFC << ( 62 - ( tail_end << 1 ) ) );
@@ -608,6 +694,7 @@ void CompressedGenotypeTable3::getContingencyTable( uint rIdx1, uint rIdx2, Cont
         AddToContingency( contingency.n7, tmp_val, a_bb, b_ab );
         AddToContingency( contingency.n8, tmp_val, a_bb, b_bb );
     }
+*/
     ct.setContingency( contingency );
 }
 
@@ -641,7 +728,7 @@ void CompressedGenotypeTable3::getCaseControlContingencyTable( uint rIdx1, uint 
     const PWORD *case_ptr = reinterpret_cast< const PWORD * >( ccs.case_begin() );
     const PWORD *ctrl_ptr = reinterpret_cast< const PWORD * >( ccs.control_begin() );
 
-    for( uint i = BLOCKS_PER_UNIT + 1; i < blocks_per_row; i += BLOCKS_PER_UNIT ) {
+    for( uint i = 1; i < blocks_per_row; i += BLOCKS_PER_UNIT ) {
         a_val = *ma_tmp_data;
         ++ma_tmp_data;
         b_val = *mb_tmp_data;
@@ -685,7 +772,7 @@ void CompressedGenotypeTable3::getCaseControlContingencyTable( uint rIdx1, uint 
             AddToContingency( ctrl_cont.n8, tmp_val, a_bb, b_bb );
         }
     }
-
+/*
     PWORD tail_end = ( max_column & TAIL_END );
     if( tail_end ) {
         a_val = *ma_tmp_data++;
@@ -736,7 +823,7 @@ void CompressedGenotypeTable3::getCaseControlContingencyTable( uint rIdx1, uint 
         }
 
     }
-
+*/
     ccct.setMarkerAIndex( rIdx1 );
     ccct.setMarkerBIndex( rIdx2 );
 

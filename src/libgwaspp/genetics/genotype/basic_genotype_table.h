@@ -69,6 +69,7 @@ class BasicGenotypeTable : public GenoTable {
 
         void getGenotypeDistribution( uint rIdx, GenotypeDistribution &dist );
         void getCaseControlGenotypeDistribution( uint rIdx, CaseControlSet & ccs, CaseControlGenotypeDistribution & ccgd );
+        void getCaseControlGenotypeDistribution( uint rIdx, CaseControlGenotypeDistribution & ccgd ) { assert(false); }
 
         void selectMarkerPair( uint rIdx1, uint rIdx2 );
 
@@ -77,6 +78,8 @@ class BasicGenotypeTable : public GenoTable {
             assert( false );
         }
         void getCaseControlContingencyTable( uint rIdx1, uint rIdx2, CaseControlSet & ccs, CaseControlContingencyTable & ccct );
+
+        void selectCaseControl( CaseControlSet& ccs ) { assert( false ); }
 
         bool isGenotypeHomozygous( ushort enc );
 

@@ -46,7 +46,7 @@ LIST(APPEND SRCS algorithms/maf_func.cpp)
 LIST(APPEND SRCS validation_tests/validate_func.cpp)
 
 include_directories(${PROJECT_SOURCE_DIR}/src/libgwaspp ${PROJECT_SOURCE_DIR}/src ${Boost_INCLUDE_DIR})
-link_directories(${PROJECT_BINARY_DIR}/lib)
+link_directories(${PROJECT_BINARY_DIR}/lib rt)
 
 #FOREACH(SRC ${SRCS})
 #	GET_FILENAME_COMPONENT(SRC_NAME ${SRC} NAME_WE)
