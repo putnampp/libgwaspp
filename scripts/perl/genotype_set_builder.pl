@@ -82,7 +82,7 @@ sub make_tplink_cc {
     for ( my $i = 0; $i < $mcount; $i++ ) {
         my ($res, $case_dist, $ctrl_dist) = build_genotype_for_marker_cc( $icount, \@case_control );
 
-        print TPED "0\trs$i\t0\t$i\t$res\n";
+        print TPED "0\trs$i\t0\t$i"."$res\n";
         print CASE_EXPECTED "$case_dist\n";
         print CTRL_EXPECTED "$ctrl_dist\n";
     }
@@ -106,7 +106,7 @@ sub make_tplink {
     for ( my $i = 0; $i < $mcount; $i++ ) {
         my ($res, $dist) = build_genotype_for_marker( $icount );
 
-        print TPED "0\trs$i\t0\t$i\t$res\n";
+        print TPED "0\trs$i\t0\t$i"."$res\n";
         print EXPECTED "$dist\n";
     }
 
@@ -137,30 +137,30 @@ sub build_genotype_for_marker_cc {
         if( $cc_list[ $i ] ) {
             if( $v == 0 ) {
                 $case_xx++;
-                $res = $res."\tXX";
+                $res = $res."\t0\t0";
             } elsif ( $v == 1 ) {
-                $case_xx++;
-                $res = $res."\tXX";
+                $case_aa++;
+                $res = $res."\tA\tA";
             } elsif ( $v == 2 ) {
-                $case_xx++;
-                $res = $res."\tXX";
+                $case_ab++;
+                $res = $res."\tA\tC";
             } else {
-                $case_xx++;
-                $res = $res."\tXX";
+                $case_bb++;
+                $res = $res."\tC\tC";
             }
         } else {
             if( $v == 0 ) {
                 $ctrl_xx++;
-                $res = $res."\tXX";
+                $res = $res."\t0\t0";
             } elsif ( $v == 1 ) {
                 $ctrl_aa++;
-                $res = $res."\tAA";
+                $res = $res."\tA\tA";
             } elsif ( $v == 2 ) {
                 $ctrl_ab++;
-                $res = $res."\tAC";
+                $res = $res."\tA\tC";
             } else {
                 $ctrl_bb++;
-                $res = $res."\tCC";
+                $res = $res."\tC\tC";
             }
         }
     }
@@ -187,16 +187,16 @@ sub build_genotype_for_marker {
 
         if( $v == 0 ) { 
             $xx++;
-            $res = $res."\tXX";
+            $res = $res."\t0\t0";
         } elsif( $v == 1 ) { 
             $aa++;
-            $res = $res."\tAA";
+            $res = $res."\tA\tA";
         } elsif( $v == 2 ) { 
             $ab++;
-            $res = $res."\tAC";
+            $res = $res."\tA\tC";
         } else { 
             $bb++;
-            $res = $res."\tCC";
+            $res = $res."\tC\tC";
         }
     }
 
