@@ -105,6 +105,7 @@ namespace genetics {
 #if PROCESSOR_WORD_SIZE == 64
 
 #define U_HALF_MASK 0xAAAAAAAAAAAAAAAA
+#define L_HALF_MASK 0x5555555555555555
 #define BLOCKS_PER_UNIT 4
 #define TAIL_END 31
 
@@ -128,6 +129,7 @@ namespace genetics {
 #elif PROCESSOR_WORD_SIZE == 32
 
 #define U_HALF_MASK 0xAAAAAAAA
+#define L_HALF_MASK 0x55555555
 #define BLOCKS_PER_UNIT 2
 #define TAIL_END 15
 
@@ -153,6 +155,7 @@ namespace genetics {
 #elif PROCESSOR_WORD_SIZE == 16
 
 #define U_HALF_MASK 0xAAAA
+#define L_HALF_MASK 0x5555
 #define BLOCKS_PER_UNIT 1
 #define TAIL_END 7
 
@@ -199,29 +202,29 @@ static byte skip_count[ 16 ];
 */
 
 inline void DecodeBitStrings( PWORD val, PWORD &aa, PWORD &ab, PWORD &bb) {
-    PWORD half = ((val & U_HALF_MASK) >> 1);
-    bb = ( val & half );
-    PWORD tmp = (val ^ half);
-    aa = val & tmp;
-    ab = ((val >> 1) & tmp);
+    PWORD uhalf = ((val & U_HALF_MASK) >> 1);
+    PWORD lhalf = (val & L_HALF_MASK);
+    bb = (uhalf & lhalf);
+    aa = (bb ^ lhalf);
+    ab = (bb ^ uhalf);
 }
 
 inline void IncrementFrequencyValue( frequency_table &ft, ulong aa, ulong ab, ulong bb) {
-    aa = ((aa | ((aa & 0x5555000055550000) >> 15)));
-    ft.aa += bit_count16[ aa & 0x0000FFFF ] + bit_count16[ (aa >> 32) & 0x0000FFFF ];
-    ab = ((ab | ((ab & 0x5555000055550000) >> 15)));
-    ft.ab += bit_count16[ ab & 0x0000FFFF ] + bit_count16[ (ab >> 32) & 0x0000FFFF ];
-    bb = ((bb | ((bb & 0x5555000055550000) >> 15)));
-    ft.bb += bit_count16[ bb & 0x0000FFFF ] + bit_count16[ (bb >> 32) & 0x0000FFFF ];
+    aa = ((aa | ((aa & 0x5555555500000000) >> 31)));
+    ft.aa += bit_count16[ (ushort)aa ] + bit_count16[ (ushort)(aa >> 16) ];
+    ab = ((ab | ((ab & 0x5555555500000000) >> 31)));
+    ft.ab += bit_count16[ (ushort)ab ] + bit_count16[ (ushort)(ab >> 16) ];
+    bb = ((bb | ((bb & 0x5555555500000000) >> 31)));
+    ft.bb += bit_count16[ (ushort)bb ] + bit_count16[ (ushort)(bb >> 16) ];
 }
 
 inline void IncrementFrequencyValue( frequency_table &ft, uint aa, uint ab, uint bb) {
     aa = ((aa | ((aa & 0x55550000) >> 15)));
-    ft.aa += bit_count16[ aa & 0x0000FFFF ];
+    ft.aa += bit_count16[ (ushort) aa ];
     ab = ((ab | ((ab & 0x55550000) >> 15)));
-    ft.ab += bit_count16[ ab & 0x0000FFFF ];
+    ft.ab += bit_count16[ (ushort)ab];
     bb = ((bb | ((bb & 0x55550000) >> 15)));
-    ft.bb += bit_count16[ bb & 0x0000FFFF ];
+    ft.bb += bit_count16[ (ushort) bb ];
 }
 
 inline void IncrementFrequencyValue( frequency_table &ft, ushort aa, ushort ab, ushort bb) {

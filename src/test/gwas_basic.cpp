@@ -106,6 +106,9 @@ const string TEST_DISTRIBUTION_DEBUG_KEY = "dist-debug";
 const string TEST_CC_SELECT_DIST_PERFORMANCE_KEY = "select-cc-maf";
 const string TEST_CC_INLINE_DIST_PERFORMANCE_KEY = "inline-cc-maf";
 
+const string TEST_INLINE_DIST_DEBUG_KEY = "test-inline-maf";
+const string TEST_SELECT_DIST_DEBUG_KEY = "test-select-maf";
+
 const string VALIDATE_CALL_KEY = "valid-calls";
 const string VALIDATE_GENO_KEY = "valid-geno";
 
@@ -215,6 +218,10 @@ int main( int argc, char **argv ) {
         compute ( select_cc_maf, &*gd, out );
     }
 
+    if( vm.count( TEST_INLINE_DIST_DEBUG_KEY ) ) {
+        compute ( inline_maf_print, &*gd, out );
+    }
+
     marker_ids->clear();
     individual_ids->clear();
 
@@ -251,6 +258,7 @@ bool parseArguments( int argc, char **argv, po::variables_map &vm ) {
     ((TEST_DISTRIBUTION_PERFORMANCE_KEY).c_str(), "Performance test of Genotype Distribution table")
     ((TEST_CC_SELECT_DIST_PERFORMANCE_KEY).c_str(), "Performance test of Case/Control Genotype Distributions; Select C/C first, then compute MAF")
     ((TEST_CC_INLINE_DIST_PERFORMANCE_KEY).c_str(), "Performance test of Case/Control Genotype Distributions; Compute MAF using C/C inline")
+    ((TEST_INLINE_DIST_DEBUG_KEY).c_str(), "Print all maf distributions for the input set, using an inline distribution counting method")
     ;
 
     po::options_description validate( "Validations" );

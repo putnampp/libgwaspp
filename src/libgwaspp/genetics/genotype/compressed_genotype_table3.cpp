@@ -212,7 +212,7 @@ void CompressedGenotypeTable3::addGenotypeRow( int rIdx, string::const_iterator 
     ushort head_val = 0, geno_code = 0x0000;
     ushort clear_code = 0, head_shift = 0;
 
-    ++tmp_data;
+    ++tmp_data;         // skip header
     do {
         if( shift > 14 ) {
 //            *tmp_data = val;
@@ -222,11 +222,8 @@ void CompressedGenotypeTable3::addGenotypeRow( int rIdx, string::const_iterator 
             shift = 0;
         }
 
-        //cout << (int)*it;
         c1 = transformations[( byte )*it++];
-        //cout << (int)*it << " -> " << endl;
         c2 = transformations[( byte )*it++];
-        //cout << (int)c1 << " x " << (int) c2 << endl;
 
         enc = GetUshortAtDataBlock( lookup[ c1 ][ c2 ] );
 
@@ -241,6 +238,7 @@ void CompressedGenotypeTable3::addGenotypeRow( int rIdx, string::const_iterator 
             }
 
             assert( tmp_e != 0 );
+
             val |= ( tmp_e << shift );
             tmp_e = 0;
         }
@@ -307,16 +305,20 @@ void CompressedGenotypeTable3::addGenotypeRow( int rIdx, const char *p_begin, co
             }
 
             assert( tmp_e != 0 );
+            //cout << "(" << tmp_e << ")";
             val |= ( tmp_e << shift );
             tmp_e = 0;
         }
-
+        //cout << endl;
         shift += 2;
     } while( ++tmp_p < p_end );
 
     SetUshortAtDataBlockPtr( tmp_data, val );
     // set header
     SetUshortAtDataBlockPtr( tmp_header, head_val );
+
+    //cout << hex << "Header: " <<  head_val << endl;
+    //cout << dec;
 #else
 #error "Incomplete implementation of adding genotype by row"
 #endif
@@ -366,11 +368,12 @@ DataBlock CompressedGenotypeTable3::operator()( int r, int c ) {
 
     uint block_offset = ( c & 0x07 ) << 1;
 
-    val &= ( 0x0003 << block_offset );
+    //val &= ( 0x0003 << block_offset );
+    val = ((val >> block_offset) & 0x0003);
 
     DataBlock db;
 
-    if( val < 0x0002 ) {
+    /*if( val < 0x0002 ) {
         if( val == 0x0001 ) {
             SetUshortAtDataBlock( db, (( header & 0x0F00 ) >> 8 ) );
         } else {
@@ -382,6 +385,20 @@ DataBlock CompressedGenotypeTable3::operator()( int r, int c ) {
         } else {
             SetUshortAtDataBlock( db, ( header & 0x000F ) );
         }
+    }*/
+    switch( val ) {
+    case 3:
+        SetUshortAtDataBlock( db, (header & 0x000F) );
+        break;
+    case 2:
+        SetUshortAtDataBlock( db, ((header & 0x00F0) >> 4) );
+        break;
+    case 1:
+        SetUshortAtDataBlock( db, ((header & 0x0F00) >> 8 ) );
+        break;
+    default:
+        SetUshortAtDataBlock( db, 0xFFFF );
+        break;
     }
     return db;
 }
@@ -546,8 +563,19 @@ void CompressedGenotypeTable3::getGenotypeDistribution( uint rIdx, GenotypeDistr
     for( uint i = 1; i < blocks_per_row; i += BLOCKS_PER_UNIT ) {
         val = *tmp_data++;
 
+        /*cout << hex;
+        cout.width(16);
+        cout << val;*/
         DecodeBitStrings(val, _aa, _ab, _bb);
+        /*cout << hex << "\t";
+        cout.width(16);
+        cout << _aa << "\t";
+        cout.width(16);
+        cout << _ab << "\t";
+        cout.width(16);
+        cout << _bb;*/
         IncrementFrequencyValue(joint_gt, _aa, _ab, _bb);
+        //cout << dec << "\t" << joint_gt.aa << "\t" << joint_gt.ab << "\t" << joint_gt.bb << endl;
     }
 
     /*
@@ -616,7 +644,7 @@ void CompressedGenotypeTable3::getCaseControlGenotypeDistribution( uint rIdx, Ca
     PWORD *tmp_case_data = reinterpret_cast< PWORD * >( m_cases + offset );
     PWORD *tmp_ctrl_data = reinterpret_cast< PWORD * >( m_controls + offset );
 
-    PWORD val, case_val, ctrl_val;
+    PWORD case_val, ctrl_val;
     PWORD _aa, _ab, _bb;
 
     frequency_table case_gt, ctrl_gt;

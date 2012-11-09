@@ -284,5 +284,22 @@ void inline_cc_maf( GeneticData *gd, ostream *out ) {
     }
 }
 
+void inline_maf_print( GeneticData *gd, ostream *out ) {
+    int marker_count = gd->getGenotypedMarkersCount();
+    int individ_count = gd->getGenotypedIndividualsCount();
+    GenoTable &gt = *gd->getGenotypeTable();
+
+    GenotypeDistribution dist;
+    const frequency_table &ft = *dist.getDistribution();
+    double _tot, _maf;
+
+    for( int i = 0; i < marker_count; ++i ) {
+        gt.getGenotypeDistribution( i, dist );
+        maf( ft, _tot, _maf );
+
+        *out << (int)(individ_count - _tot) << "\t" << ft.aa << "\t" << ft.ab << "\t" << ft.bb << endl;
+    }
+}
+
 }
 }

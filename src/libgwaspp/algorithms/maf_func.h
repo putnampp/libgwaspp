@@ -69,6 +69,8 @@ void compute_maf_perform( GeneticData *gd, ostream *out);
 void select_cc_maf( GeneticData *gd, ostream *out);
 void inline_cc_maf( GeneticData *gd, ostream *out);
 
+void inline_maf_print( GeneticData *gd, ostream *out );
+
 }
 }
 
