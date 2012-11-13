@@ -23,6 +23,7 @@ LIST(APPEND SRCS genetics/genotype/basic_genotype_table.cpp)
 LIST(APPEND SRCS genetics/genotype/compressed_genotype_table.cpp)
 LIST(APPEND SRCS genetics/genotype/compressed_genotype_table2.cpp)
 LIST(APPEND SRCS genetics/genotype/compressed_genotype_table3.cpp)
+LIST(APPEND SRCS genetics/genotype/compressed_genotype_table4.cpp)
 
 LIST(APPEND SRCS genetics/phenotype/phenotype.cpp)
 LIST(APPEND SRCS genetics/phenotype/phenotype_tree.cpp)

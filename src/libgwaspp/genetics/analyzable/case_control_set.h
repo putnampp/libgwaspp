@@ -26,7 +26,7 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
- #ifndef CASECONTROLSET_H
+#ifndef CASECONTROLSET_H
 #define CASECONTROLSET_H
 
 #include <set>
@@ -67,6 +67,12 @@ class CaseControlSet
         const ushort * case_begin() { return case_set; }
         const ushort * case_end() { return case_set_end; }
 
+        const ushort * stream_case_begin() { return stream_case_set; }
+        const ushort * stream_case_end() { return stream_cs_end; }
+
+        const ushort * stream_control_begin() { return stream_control_set; }
+        const ushort * stream_control_end() { return stream_ctrl_end; }
+
         inline bool isCase( uint idx );
         inline bool isControl( uint idx );
 
@@ -75,11 +81,16 @@ class CaseControlSet
         virtual ~CaseControlSet();
     protected:
         const indexer * possible_indices;
-        uint block_count, max_index, byte_count;
+        uint max_index;
+        uint block_count, byte_count;
         ushort * buffer, * control_set, * case_set;
         ushort * control_set_end, *case_set_end;
 
         uint case_count, ctrl_count, total_count;
+
+        uint stream_block_count, stream_byte_count;
+        ushort *stream_buffer, *stream_control_set, *stream_case_set;
+        ushort *stream_ctrl_end, *stream_cs_end;
 
 };
 

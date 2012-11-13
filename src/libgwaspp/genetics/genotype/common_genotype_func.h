@@ -40,6 +40,54 @@ namespace genetics {
 
 void printFrequencyDistribution( const frequency_table & ft, ostream & out, bool include_header = false );
 void printContingencyTable( const contingency_table & ct, ostream & out, bool include_header = false );
+
+uint ones16( register uint i );
+void init_bit_count( byte * bit_count );
+
+inline int PopCount( ushort v ) {
+    static byte bit_count16[ 0x10000 ];
+    static int init = 0;
+    switch( init ) {
+    case 0:
+        init_bit_count( bit_count16 );
+        ++init;
+    default:
+        return bit_count16[ v ];
+    }
+}
+
+inline int PopCount( ulong v ) {
+    static int count;
+    count =  PopCount( (ushort) v );
+    v >>= 16;
+    count += PopCount( (ushort) v );
+    v >>= 16;
+    count += PopCount( (ushort) v );
+    v >>= 16;
+    count += PopCount( (ushort) v );
+    return count;
+}
+
+inline int PopCount( uint v ) {
+    static int count;
+    count = PopCount( (ushort) v );
+    v >>= 16;
+    count += PopCount( (ushort) v );
+    return count;
+}
+
+#ifndef IncrementFrequencyValueStream
+#define IncrementFrequencyValueStream( ft, l_aa, l_ab, l_bb )       \
+                            ft.aa += PopCount( l_aa );              \
+                            ft.ab += PopCount( l_ab );              \
+                            ft.bb += PopCount( l_bb );
+#endif
+
+#ifndef AddToContingencyStream
+#define AddToContingencyStream( n, a, b )    \
+    n += PopCount( (a & b ) );
+#endif
+
 }
 }
 

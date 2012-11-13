@@ -51,6 +51,7 @@
 #include "genetics/genotype/geno_table.h"
 #include "genetics/analyzable/case_control_set.h"
 
+/*
 #if COMPRESSION_LEVEL == 1
 #include "genetics/genotype/compressed_genotype_table.h"
 #elif COMPRESSION_LEVEL == 2
@@ -60,6 +61,9 @@
 #else
 #include "genetics/genotype/basic_genotype_table.h"
 #endif
+*/
+
+#include "genetics/genotype/genotype_tables.h"
 
 #include "algorithms/genetic_data_func.h"
 
@@ -70,9 +74,11 @@ using namespace libgwaspp::algorithms;
 namespace libgwaspp {
 namespace genetics {
 
+enum eCompressionLevel { eBasicCompression = 0, eByteCompression, eHalfByteCompression, e2BitBlockCompression, e3BitStream };
+
 class GeneticData {
     public:
-        GeneticData( bool isPhased = false );
+        GeneticData( eCompressionLevel comp_level = e2BitBlockCompression, bool isPhased = false );
 
         int getIndividualCount() const { return individuals->getCount(); }
         int getPhenotypeCount() const { return individuals->getPhenotypeCount(); }
@@ -138,6 +144,7 @@ class GeneticData {
     protected:
 
     private:
+        eCompressionLevel compression_level;
         IndividualCollection *individuals;
         MarkerCollection *markers;
         CaseControlSet *ccs;

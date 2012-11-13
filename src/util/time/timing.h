@@ -33,6 +33,8 @@
 #include <stdint.h>
 #include <cstdio>
 
+#include "boost/format.hpp"
+
 #include "common.h"
 
 namespace util {
@@ -97,9 +99,10 @@ typedef timeval TIME;
 
 #ifndef PRINT_LAPSE
 #if DEBUG_LEVEL
-#define PRINT_LAPSE(out, x) COMPUTE_LAPSE; \
-                        out << x; \
-                        PrintTime(res); \
+#define PRINT_LAPSE(out, x) COMPUTE_LAPSE;                                              \
+                        out << x;                                                       \
+                        AdjustTime( res );                                              \
+                        out << boost::format( TIME_PRINT ) % res.tv_sec % res.FRAC;     \
                         out << "\n";
 #else
 #define PRINT_LAPSE(out, x)

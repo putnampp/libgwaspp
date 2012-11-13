@@ -31,7 +31,7 @@
 namespace libgwaspp {
 namespace genetics {
 
-GeneticData::GeneticData( bool _phase ) : ccs(NULL), genotyped_individs(NULL), genotyped_markers(NULL), phenotyped_individs(NULL), phenotyped_traits(NULL), geno_tbl(NULL) {
+GeneticData::GeneticData( eCompressionLevel comp_level, bool _phase ) : compression_level( comp_level), ccs(NULL), genotyped_individs(NULL), genotyped_markers(NULL), phenotyped_individs(NULL), phenotyped_traits(NULL), geno_tbl(NULL) {
     //ctor
     individuals = new IndividualCollection();
     markers = new MarkerCollection();
@@ -46,6 +46,7 @@ int GeneticData::getMarkerIndex( const Marker *m ) const {
 void GeneticData::updateGenotypeTable() {
 //    gt = new GenotypeTable2( genotyped_markers, genotyped_individs );
 
+/*
 #if COMPRESSION_LEVEL == 1
     geno_tbl = new CompressedGenotypeTable( genotyped_markers, genotyped_individs );
 #elif COMPRESSION_LEVEL == 2
@@ -55,6 +56,24 @@ void GeneticData::updateGenotypeTable() {
 #else
     geno_tbl = new BasicGenotypeTable( genotyped_markers, genotyped_individs );
 #endif
+*/
+    switch( compression_level ) {
+    case eByteCompression:
+        geno_tbl = new CompressedGenotypeTable( genotyped_markers, genotyped_individs );
+        break;
+    case eHalfByteCompression:
+        geno_tbl = new CompressedGenotypeTable2( genotyped_markers, genotyped_individs );
+        break;
+    case e2BitBlockCompression:
+        geno_tbl = new CompressedGenotypeTable3( genotyped_markers, genotyped_individs );
+        break;
+    case e3BitStream:
+        geno_tbl = new CompressedGenotypeTable4( genotyped_markers, genotyped_individs );
+        break;
+    default:
+        geno_tbl = new BasicGenotypeTable( genotyped_markers, genotyped_individs );
+        break;
+    }
 }
 
 void GeneticData::addGenotype( int r, int c, const string &s ) {

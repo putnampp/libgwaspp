@@ -51,5 +51,23 @@ void printFrequencyDistribution( const frequency_table & ft, ostream & out, bool
     out << dec << ft.aa << "\t" << ft.ab << "\t" << ft.bb << endl;
 }
 
+
+// Modified version of ones32 found on
+// http://aggregate.org/MAGIC/#Population Count (Ones Count)
+uint ones16( register uint x ) {
+    x -= (( x >> 1 ) & 0x5555 );
+    x = ((( x >> 2 ) & 0x3333 ) + ( x & 0x3333 ) );
+    x = ((( x >> 4 ) + x ) & 0x0f0f );
+    x += ( x >> 8 );
+    return ( x & 0x003f );
+}
+
+void init_bit_count( byte * _count ) {
+    byte * tmp = _count;
+    for( uint i = 0; i < 0x10000; ++i, ++tmp ) {
+        *tmp = ones16( i );
+    }
+}
+
 }
 }

@@ -26,13 +26,13 @@
 * of the authors and should not be interpreted as representing official policies, 
 * either expressed or implied, of the FreeBSD Project.
 */
-#ifndef COMPRESSEDGENOTYPETABLE3_H
-#define COMPRESSEDGENOTYPETABLE3_H
+#ifndef COMPRESSEDGENOTYPETABLE4_H
+#define COMPRESSEDGENOTYPETABLE4_H
 
 #include <iostream>
 #include <cmath>
 
-#include "libgwaspp.h"
+#include "common.h"
 #include "util/index_set/indexer.h"
 #include "genetics/genotype/geno_table.h"
 #include "genetics/genotype/common_genotype.h"
@@ -46,7 +46,7 @@ namespace genetics {
 
 /**
     byte compressed genotype
-    2 bits per Genotype
+    3 bits per Genotype
     1 block per Record to identify which genotype code is used as "UNKNOWN" for record
 
     Little-endian bit ordering
@@ -101,133 +101,17 @@ namespace genetics {
     Unknown Genotype value = 0xFFFF
 */
 
-#if PROCESSOR_WORD_SIZE == 64
-
-#define U_HALF_MASK 0xAAAAAAAAAAAAAAAA
-#define L_HALF_MASK 0x5555555555555555
-#define TAIL_END 31
-
-#ifndef AddToContingency2BitBlock
-#define AddToContingency2BitBlock( n, t, a, b )                                      \
-    t = (a & b);                                    \
-    t = ((t | ((t & 0x5555555500000000) >> 31)));   \
-    n += PopCount( (uint) t );
-#endif
-
-#ifndef AddToDistribution2BitBlock
-#define AddToDistribution2BitBlock(n, a )                                            \
-    a = ((a | ((a & 0x5555555500000000) >> 31)))    \
-    n += PopCount( (uint) a );
-#endif
-
-#ifndef TAIL_END_MASK
-#define TAIL_END_MASK( x ) ~( 0xFFFFFFFFFFFFFFFC << ( 62 - ( x << 1 ) ) )
-#endif
-
-#elif PROCESSOR_WORD_SIZE == 32
-
-#define U_HALF_MASK 0xAAAAAAAA
-#define L_HALF_MASK 0x55555555
-#define TAIL_END 15
-
-#ifndef AddToContingency2BitBlock
-#define AddToContingency2BitBlock( n, t, a, b )              \
-    t = (a & b);                                    \
-    if( t ) {                                       \
-        t = ((t | ((t & 0x55550000) >> 15)));       \
-        n += PopCount( (ushort) t ); \
-    }
-#endif
-
-#ifndef AddToDistribution
-#define AddToDistribution2BitBlock(n, a )                    \
-    a = ((a | ((a & 0x55550000) >> 15)))            \
-    n += PopCount( (ushort) a );
-#endif
-
-#ifndef TAIL_END_MASK
-#define TAIL_END_MASK( x ) ( 0xFFFFFFFF >> ( 30 - ( x << 1 ) ) )
-#endif
-
-#elif PROCESSOR_WORD_SIZE == 16
-
-#define U_HALF_MASK 0xAAAA
-#define L_HALF_MASK 0x5555
-#define TAIL_END 7
-
-#ifndef AddToContingency2BitBlock
-#define AddToContingency2BitBlock( n, t, a, b )                                      \
-    t = (a & b);                                    \
-    if( t ) {                                       \
-        n += PopCount( (ushort) t );                      \
-    }
-#endif
-
-#ifndef AddToDistribution2BitBlock
-#define AddToDistribution2BitBlock(n, a )                                            \
-    n += PopCount( (ushort) a );
-#endif
-
-#ifndef TAIL_END_MASK
-#define TAIL_END_MASK( x ) ( 0xFFFC << ( 14 - ( x << 1 ) ) )
-#endif
-
-#else
-#error "Invalid Processor Bit Width Defined"
-#endif
-
 /**
-    The following Macro will split a bit string (VAL) of genotypes into the three separate bits strings (AA, AB, BB)
-    where the even numbered bits are set IFF the genotype for corresponding genotype is set.
-
-    Boolean logic below:
-
-    For BB genotypes: take the high order bit AND it with the lower order bit. If they are they are both 1 (ie. bb= 11b),
-    then lower order bit will be 1, and higher order bits will be cleared.
-
-    Remember the XOR of the higher and lower order bits. If Genotype is  AA or AB, then the XOR will result in lower order bit being 1.
-    If the Genotype is XX or BB, then the XOR will result in lower bit being 0.
-
-    ANDing the XOR value with the input value will result in lower order bit being 1 IFF genotype is AA.
-
-    Shifting the input value by 1 bit (dividing by 2) will result in the lower order bit being 1 IFF genotype is AB.
-*/
-inline void DecodeBitStrings2BitBlock( PWORD val, PWORD & aa, PWORD & ab, PWORD & bb) {
-    static PWORD uhalf, lhalf;
-    uhalf = ((val & U_HALF_MASK) >> 1);
-    lhalf = (val & L_HALF_MASK);
-    bb = (uhalf & lhalf);
-    aa = (bb ^ lhalf);
-    ab = (bb ^ uhalf);
-}
-
-inline void IncrementFrequencyValue2BitBlock( frequency_table &ft, ulong aa, ulong ab, ulong bb) {
-    aa = ((aa | ((aa & 0x5555555500000000) >> 31)));
-    ft.aa += PopCount( (uint) aa );
-    ab = ((ab | ((ab & 0x5555555500000000) >> 31)));
-    ft.ab += PopCount( (uint) ab );
-    bb = ((bb | ((bb & 0x5555555500000000) >> 31)));
-    ft.bb += PopCount( (uint) bb );
-}
-
-inline void IncrementFrequencyValue2BitBlock( frequency_table &ft, uint aa, uint ab, uint bb) {
-    aa = ((aa | ((aa & 0x55550000) >> 15)));
-    ft.aa += PopCount( (ushort) aa );
-    ab = ((ab | ((ab & 0x55550000) >> 15)));
-    ft.ab += PopCount( (ushort) ab );
-    bb = ((bb | ((bb & 0x55550000) >> 15)));
-    ft.bb += PopCount( (ushort) bb );
-}
-
-inline void IncrementFrequencyValue2BitBlock( frequency_table &ft, ushort aa, ushort ab, ushort bb) {
-    ft.aa += PopCount( aa );
-    ft.ab += PopCount( ab );
-    ft.bb += PopCount( bb );
-}
-
-class CompressedGenotypeTable3 : public GenoTable {
+ * Class: CompressedGenotypeTable4
+ * Description: This class uses a 3-bit streaming approach to genotype compression
+ * In other words, genotypes are divided into the 3 streams of bits. A stream
+ * represents one of AA, AB, BB genotypes
+ *
+ * Testing claim that the streaming approach will allow for greater throughput
+ */
+class CompressedGenotypeTable4 : public GenoTable {
 public:
-    CompressedGenotypeTable3( indexer *markers, indexer *individs ) : GenoTable( markers, individs ), gt_lookup(NULL), m_cases(NULL), m_controls(NULL) {
+    CompressedGenotypeTable4( indexer *markers, indexer *individs ) : GenoTable( markers, individs ), gt_lookup(NULL), m_cases(NULL), m_controls(NULL) {
         initialize();
     }
 
@@ -255,7 +139,7 @@ public:
     void getContingencyTable( uint rIdx1, uint rIdx2, ushort *column_set, ContingencyTable &ct );
     void getCaseControlContingencyTable( uint rIdx1, uint rIdx2, CaseControlSet &ccs, CaseControlContingencyTable &ccct );
 
-    virtual ~CompressedGenotypeTable3();
+    virtual ~CompressedGenotypeTable4();
 protected:
     void initialize();
     void constructCountLookup();
@@ -266,6 +150,8 @@ protected:
     uint gt_size, lookup_size;
     DataBlock **lookup;
 
+    uint genotype_block_offset_ab, genotype_block_offset_bb;
+
     genotype_counts count_lookup[ 0x10000 ];
 
     DataBlock *m_cases, *m_controls;
@@ -273,10 +159,7 @@ protected:
     byte skip_count[ 16 ];
 };
 
-//    contingency_lookup = new joint_genotypes[ 0x100000 ]; // 16 * 256 * 256 == 2^4 * 2^8 * 2^8 == 2^20 == 0x100000
-//    skip_count = new byte[ 16 ];
-
 }
 }
 
-#endif // COMPRESSEDGENOTYPETABLE3_H
+#endif // COMPRESSEDGENOTYPETABLE4_H

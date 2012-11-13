@@ -545,7 +545,7 @@ void CompressedGenotypeTable3::selectCaseControl( CaseControlSet & ccs ) {
         tmp_case = case_ptr;
         tmp_ctrl = ctrl_ptr;
         // for every data block
-        for( uint j = 1; j < blocks_per_row; j += BLOCKS_PER_UNIT ) {
+        for( uint j = 1; j < blocks_per_row; j += BLOCKS_PER_PWORD ) {
             // mask out all unnecessary data columns
             *case_data++ &= *tmp_case++;
             *ctrl_data++ &= *tmp_ctrl++;
@@ -555,18 +555,18 @@ void CompressedGenotypeTable3::selectCaseControl( CaseControlSet & ccs ) {
 
 void CompressedGenotypeTable3::getGenotypeDistribution( uint rIdx, GenotypeDistribution &dist ) {
     PWORD *tmp_data = reinterpret_cast< PWORD * >(data + rIdx * blocks_per_row + 1);
-    PWORD val, _aa, _ab, _bb;
+    PWORD val, _aa, _ab, _bb, uhalf, lhalf;
 
     frequency_table joint_gt;
     ResetFrequencyTable(joint_gt);
 
-    for( uint i = 1; i < blocks_per_row; i += BLOCKS_PER_UNIT ) {
+    for( uint i = 1; i < blocks_per_row; i += BLOCKS_PER_PWORD ) {
         val = *tmp_data++;
 
         /*cout << hex;
         cout.width(16);
         cout << val;*/
-        DecodeBitStrings(val, _aa, _ab, _bb);
+        DecodeBitStrings2BitBlock(val, _aa, _ab, _bb);
         /*cout << hex << "\t";
         cout.width(16);
         cout << _aa << "\t";
@@ -574,7 +574,7 @@ void CompressedGenotypeTable3::getGenotypeDistribution( uint rIdx, GenotypeDistr
         cout << _ab << "\t";
         cout.width(16);
         cout << _bb;*/
-        IncrementFrequencyValue(joint_gt, _aa, _ab, _bb);
+        IncrementFrequencyValue2BitBlock(joint_gt, _aa, _ab, _bb);
         //cout << dec << "\t" << joint_gt.aa << "\t" << joint_gt.ab << "\t" << joint_gt.bb << endl;
     }
 
@@ -585,7 +585,7 @@ void CompressedGenotypeTable3::getGenotypeDistribution( uint rIdx, GenotypeDistr
     if( tail_end > 0 ) {
         val = *tmp_data++;
 
-        DecodeBitStrings(val, _aa, _ab, _bb);
+        DecodeBitStrings2BitBlock(val, _aa, _ab, _bb);
         IncrementFrequencyValue(joint_gt, _aa, _ab, _bb);
     }
     */
@@ -597,7 +597,7 @@ void CompressedGenotypeTable3::getCaseControlGenotypeDistribution( uint rIdx, Ca
     PWORD *tmp_data = reinterpret_cast< PWORD * >(data + rIdx * blocks_per_row + 1);
 
     PWORD val, case_val, ctrl_val;
-    PWORD _aa, _bb, _ab;
+    register PWORD _aa, _bb, _ab;
 
     frequency_table case_gt, ctrl_gt;
     ResetFrequencyTable( case_gt );
@@ -607,16 +607,16 @@ void CompressedGenotypeTable3::getCaseControlGenotypeDistribution( uint rIdx, Ca
     const PWORD *ctrl_ptr = reinterpret_cast< const PWORD * >( ccs.control_begin() );
 
     // slip header block
-    for( uint i = 1; i < blocks_per_row; i += BLOCKS_PER_UNIT ) {
+    for( uint i = 1; i < blocks_per_row; i += BLOCKS_PER_PWORD ) {
         val = *tmp_data++;
         case_val = val & *case_ptr++;
         ctrl_val = val & *ctrl_ptr++;
 
-        DecodeBitStrings( case_val, _aa, _ab, _bb );
-        IncrementFrequencyValue(case_gt, _aa, _ab, _bb);
+        DecodeBitStrings2BitBlock( case_val, _aa, _ab, _bb );
+        IncrementFrequencyValue2BitBlock(case_gt, _aa, _ab, _bb);
 
-        DecodeBitStrings(ctrl_val, _aa, _ab, _bb);
-        IncrementFrequencyValue(ctrl_gt, _aa, _ab, _bb);
+        DecodeBitStrings2BitBlock(ctrl_val, _aa, _ab, _bb );
+        IncrementFrequencyValue2BitBlock(ctrl_gt, _aa, _ab, _bb);
     }
 
 /*
@@ -628,10 +628,10 @@ void CompressedGenotypeTable3::getCaseControlGenotypeDistribution( uint rIdx, Ca
         case_val = val & *case_ptr++;
         ctrl_val = val & *ctrl_ptr++;
 
-        DecodeBitStrings( case_val, _aa, _ab, _bb );
+        DecodeBitStrings2BitBlock( case_val, _aa, _ab, _bb );
         IncrementFrequencyValue(case_gt, _aa, _ab, _bb);
 
-        DecodeBitStrings( ctrl_val, _aa, _ab, _bb );
+        DecodeBitStrings2BitBlock( ctrl_val, _aa, _ab, _bb );
         IncrementFrequencyValue(ctrl_gt, _aa, _ab, _bb);
     }
 */
@@ -645,21 +645,21 @@ void CompressedGenotypeTable3::getCaseControlGenotypeDistribution( uint rIdx, Ca
     PWORD *tmp_ctrl_data = reinterpret_cast< PWORD * >( m_controls + offset );
 
     PWORD case_val, ctrl_val;
-    PWORD _aa, _ab, _bb;
+    PWORD _aa, _ab, _bb, uhalf, lhalf;
 
     frequency_table case_gt, ctrl_gt;
     ResetFrequencyTable( case_gt );
     ResetFrequencyTable( ctrl_gt );
 
-    for( uint i = 1; i < blocks_per_row; i += BLOCKS_PER_UNIT ) {
+    for( uint i = 1; i < blocks_per_row; i += BLOCKS_PER_PWORD ) {
         case_val = *tmp_case_data++;
         ctrl_val = *tmp_ctrl_data++;
 
-        DecodeBitStrings(case_val, _aa, _ab, _bb );
-        IncrementFrequencyValue(case_gt, _aa, _ab, _bb );
+        DecodeBitStrings2BitBlock(case_val, _aa, _ab, _bb );
+        IncrementFrequencyValue2BitBlock(case_gt, _aa, _ab, _bb );
 
-        DecodeBitStrings(ctrl_val, _aa, _ab, _bb );
-        IncrementFrequencyValue( ctrl_gt, _aa, _ab, _bb);
+        DecodeBitStrings2BitBlock(ctrl_val, _aa, _ab, _bb );
+        IncrementFrequencyValue2BitBlock( ctrl_gt, _aa, _ab, _bb);
     }
 
     ccgd.setCaseDistribution(case_gt);
@@ -668,8 +668,8 @@ void CompressedGenotypeTable3::getCaseControlGenotypeDistribution( uint rIdx, Ca
 
 
 void CompressedGenotypeTable3::getContingencyTable( uint rIdx1, uint rIdx2, ContingencyTable &ct ) {
-    PWORD *ma_tmp_data = reinterpret_cast< PWORD * >( data + rIdx1 * blocks_per_row + BLOCKS_PER_UNIT );
-    PWORD *mb_tmp_data = reinterpret_cast< PWORD * >( data + rIdx2 * blocks_per_row + BLOCKS_PER_UNIT );
+    PWORD *ma_tmp_data = reinterpret_cast< PWORD * >( data + rIdx1 * blocks_per_row + BLOCKS_PER_PWORD );
+    PWORD *mb_tmp_data = reinterpret_cast< PWORD * >( data + rIdx2 * blocks_per_row + BLOCKS_PER_PWORD );
 
     ct.setMarkerAIndex( rIdx1 );
     ct.setMarkerBIndex( rIdx2 );
@@ -679,24 +679,24 @@ void CompressedGenotypeTable3::getContingencyTable( uint rIdx1, uint rIdx2, Cont
 
     register PWORD a_val, b_val;
     register PWORD a_aa, a_bb, b_aa, b_bb, a_ab, b_ab;
-    PWORD tmp_val;
+    PWORD tmp_val, uhalf, lhalf;
 
-    for( uint i = 1; i < blocks_per_row; i += BLOCKS_PER_UNIT ) {
+    for( uint i = 1; i < blocks_per_row; i += BLOCKS_PER_PWORD ) {
         a_val = *ma_tmp_data++;
         b_val = *mb_tmp_data++;
 
-        DecodeBitStrings( a_val, a_aa, a_ab, a_bb );
-        DecodeBitStrings( b_val, b_aa, b_ab, b_bb );
+        DecodeBitStrings2BitBlock( a_val, a_aa, a_ab, a_bb );
+        DecodeBitStrings2BitBlock( b_val, b_aa, b_ab, b_bb );
 
-        AddToContingency( contingency.n0, tmp_val, a_aa, b_aa );
-        AddToContingency( contingency.n1, tmp_val, a_aa, b_ab );
-        AddToContingency( contingency.n2, tmp_val, a_aa, b_bb );
-        AddToContingency( contingency.n3, tmp_val, a_ab, b_aa );
-        AddToContingency( contingency.n4, tmp_val, a_ab, b_ab );
-        AddToContingency( contingency.n5, tmp_val, a_ab, b_bb );
-        AddToContingency( contingency.n6, tmp_val, a_bb, b_aa );
-        AddToContingency( contingency.n7, tmp_val, a_bb, b_ab );
-        AddToContingency( contingency.n8, tmp_val, a_bb, b_bb );
+        AddToContingency2BitBlock( contingency.n0, tmp_val, a_aa, b_aa );
+        AddToContingency2BitBlock( contingency.n1, tmp_val, a_aa, b_ab );
+        AddToContingency2BitBlock( contingency.n2, tmp_val, a_aa, b_bb );
+        AddToContingency2BitBlock( contingency.n3, tmp_val, a_ab, b_aa );
+        AddToContingency2BitBlock( contingency.n4, tmp_val, a_ab, b_ab );
+        AddToContingency2BitBlock( contingency.n5, tmp_val, a_ab, b_bb );
+        AddToContingency2BitBlock( contingency.n6, tmp_val, a_bb, b_aa );
+        AddToContingency2BitBlock( contingency.n7, tmp_val, a_bb, b_ab );
+        AddToContingency2BitBlock( contingency.n8, tmp_val, a_bb, b_bb );
     }
 /*
     PWORD tail_end = ( max_column & TAIL_END );
@@ -709,18 +709,18 @@ void CompressedGenotypeTable3::getContingencyTable( uint rIdx1, uint rIdx2, Cont
         b_val = *mb_tmp_data++;
         b_val &= tmp_val;
 
-        DecodeBitStrings( a_val, a_aa, a_ab, a_bb );
-        DecodeBitStrings( b_val, b_aa, b_ab, b_bb );
+        DecodeBitStrings2BitBlock( a_val, a_aa, a_ab, a_bb );
+        DecodeBitStrings2BitBlock( b_val, b_aa, b_ab, b_bb );
 
-        AddToContingency( contingency.n0, tmp_val, a_aa, b_aa );
-        AddToContingency( contingency.n1, tmp_val, a_aa, b_ab );
-        AddToContingency( contingency.n2, tmp_val, a_aa, b_bb );
-        AddToContingency( contingency.n3, tmp_val, a_ab, b_aa );
-        AddToContingency( contingency.n4, tmp_val, a_ab, b_ab );
-        AddToContingency( contingency.n5, tmp_val, a_ab, b_bb );
-        AddToContingency( contingency.n6, tmp_val, a_bb, b_aa );
-        AddToContingency( contingency.n7, tmp_val, a_bb, b_ab );
-        AddToContingency( contingency.n8, tmp_val, a_bb, b_bb );
+        AddToContingency2BitBlock( contingency.n0, tmp_val, a_aa, b_aa );
+        AddToContingency2BitBlock( contingency.n1, tmp_val, a_aa, b_ab );
+        AddToContingency2BitBlock( contingency.n2, tmp_val, a_aa, b_bb );
+        AddToContingency2BitBlock( contingency.n3, tmp_val, a_ab, b_aa );
+        AddToContingency2BitBlock( contingency.n4, tmp_val, a_ab, b_ab );
+        AddToContingency2BitBlock( contingency.n5, tmp_val, a_ab, b_bb );
+        AddToContingency2BitBlock( contingency.n6, tmp_val, a_bb, b_aa );
+        AddToContingency2BitBlock( contingency.n7, tmp_val, a_bb, b_ab );
+        AddToContingency2BitBlock( contingency.n8, tmp_val, a_bb, b_bb );
     }
 */
     ct.setContingency( contingency );
@@ -728,16 +728,6 @@ void CompressedGenotypeTable3::getContingencyTable( uint rIdx1, uint rIdx2, Cont
 
 void CompressedGenotypeTable3::getContingencyTable( uint rIdx1, uint rIdx2, ushort *column_set, ContingencyTable &ct ) {
 
-}
-
-// Modified version of ones32 found on
-// http://aggregate.org/MAGIC/#Population Count (Ones Count)
-uint ones16( register uint x ) {
-    x -= (( x >> 1 ) & 0x5555 );
-    x = ((( x >> 2 ) & 0x3333 ) + ( x & 0x3333 ) );
-    x = ((( x >> 4 ) + x ) & 0x0f0f );
-    x += ( x >> 8 );
-    return ( x & 0x003f );
 }
 
 void CompressedGenotypeTable3::getCaseControlContingencyTable( uint rIdx1, uint rIdx2, CaseControlSet &ccs, CaseControlContingencyTable &ccct ) {
@@ -751,12 +741,12 @@ void CompressedGenotypeTable3::getCaseControlContingencyTable( uint rIdx1, uint 
 
     register PWORD a_val, b_val, tmp_a, tmp_b, tmp_val;
     register PWORD a_aa, a_bb, b_aa, b_bb, a_ab, b_ab;
-    PWORD mask = 0;
+    PWORD mask = 0, uhalf, lhalf;
 
     const PWORD *case_ptr = reinterpret_cast< const PWORD * >( ccs.case_begin() );
     const PWORD *ctrl_ptr = reinterpret_cast< const PWORD * >( ccs.control_begin() );
 
-    for( uint i = 1; i < blocks_per_row; i += BLOCKS_PER_UNIT ) {
+    for( uint i = 1; i < blocks_per_row; i += BLOCKS_PER_PWORD ) {
         a_val = *ma_tmp_data;
         ++ma_tmp_data;
         b_val = *mb_tmp_data;
@@ -767,18 +757,18 @@ void CompressedGenotypeTable3::getCaseControlContingencyTable( uint rIdx1, uint 
             tmp_a = a_val & mask;
             tmp_b = b_val & mask;
 
-            DecodeBitStrings( tmp_a, a_aa, a_ab, a_bb );
-            DecodeBitStrings( tmp_b, b_aa, b_ab, b_bb );
+            DecodeBitStrings2BitBlock( tmp_a, a_aa, a_ab, a_bb );
+            DecodeBitStrings2BitBlock( tmp_b, b_aa, b_ab, b_bb );
 
-            AddToContingency( case_cont.n0, tmp_val, a_aa, b_aa );
-            AddToContingency( case_cont.n1, tmp_val, a_aa, b_ab );
-            AddToContingency( case_cont.n2, tmp_val, a_aa, b_bb );
-            AddToContingency( case_cont.n3, tmp_val, a_ab, b_aa );
-            AddToContingency( case_cont.n4, tmp_val, a_ab, b_ab );
-            AddToContingency( case_cont.n5, tmp_val, a_ab, b_bb );
-            AddToContingency( case_cont.n6, tmp_val, a_bb, b_aa );
-            AddToContingency( case_cont.n7, tmp_val, a_bb, b_ab );
-            AddToContingency( case_cont.n8, tmp_val, a_bb, b_bb );
+            AddToContingency2BitBlock( case_cont.n0, tmp_val, a_aa, b_aa );
+            AddToContingency2BitBlock( case_cont.n1, tmp_val, a_aa, b_ab );
+            AddToContingency2BitBlock( case_cont.n2, tmp_val, a_aa, b_bb );
+            AddToContingency2BitBlock( case_cont.n3, tmp_val, a_ab, b_aa );
+            AddToContingency2BitBlock( case_cont.n4, tmp_val, a_ab, b_ab );
+            AddToContingency2BitBlock( case_cont.n5, tmp_val, a_ab, b_bb );
+            AddToContingency2BitBlock( case_cont.n6, tmp_val, a_bb, b_aa );
+            AddToContingency2BitBlock( case_cont.n7, tmp_val, a_bb, b_ab );
+            AddToContingency2BitBlock( case_cont.n8, tmp_val, a_bb, b_bb );
         }
 
         mask = *ctrl_ptr++;
@@ -786,18 +776,18 @@ void CompressedGenotypeTable3::getCaseControlContingencyTable( uint rIdx1, uint 
             tmp_a = a_val & mask;
             tmp_b = b_val & mask;
 
-            DecodeBitStrings( tmp_a, a_aa, a_ab, a_bb );
-            DecodeBitStrings( tmp_b, b_aa, b_ab, b_bb );
+            DecodeBitStrings2BitBlock( tmp_a, a_aa, a_ab, a_bb );
+            DecodeBitStrings2BitBlock( tmp_b, b_aa, b_ab, b_bb );
 
-            AddToContingency( ctrl_cont.n0, tmp_val, a_aa, b_aa );
-            AddToContingency( ctrl_cont.n1, tmp_val, a_aa, b_ab );
-            AddToContingency( ctrl_cont.n2, tmp_val, a_aa, b_bb );
-            AddToContingency( ctrl_cont.n3, tmp_val, a_ab, b_aa );
-            AddToContingency( ctrl_cont.n4, tmp_val, a_ab, b_ab );
-            AddToContingency( ctrl_cont.n5, tmp_val, a_ab, b_bb );
-            AddToContingency( ctrl_cont.n6, tmp_val, a_bb, b_aa );
-            AddToContingency( ctrl_cont.n7, tmp_val, a_bb, b_ab );
-            AddToContingency( ctrl_cont.n8, tmp_val, a_bb, b_bb );
+            AddToContingency2BitBlock( ctrl_cont.n0, tmp_val, a_aa, b_aa );
+            AddToContingency2BitBlock( ctrl_cont.n1, tmp_val, a_aa, b_ab );
+            AddToContingency2BitBlock( ctrl_cont.n2, tmp_val, a_aa, b_bb );
+            AddToContingency2BitBlock( ctrl_cont.n3, tmp_val, a_ab, b_aa );
+            AddToContingency2BitBlock( ctrl_cont.n4, tmp_val, a_ab, b_ab );
+            AddToContingency2BitBlock( ctrl_cont.n5, tmp_val, a_ab, b_bb );
+            AddToContingency2BitBlock( ctrl_cont.n6, tmp_val, a_bb, b_aa );
+            AddToContingency2BitBlock( ctrl_cont.n7, tmp_val, a_bb, b_ab );
+            AddToContingency2BitBlock( ctrl_cont.n8, tmp_val, a_bb, b_bb );
         }
     }
 /*
@@ -816,18 +806,18 @@ void CompressedGenotypeTable3::getCaseControlContingencyTable( uint rIdx1, uint 
             tmp_a = a_val & mask;
             tmp_b = b_val & mask;
 
-            DecodeBitStrings( tmp_a, a_aa, a_ab, a_bb );
-            DecodeBitStrings( tmp_b, b_aa, b_ab, b_bb );
+            DecodeBitStrings2BitBlock( tmp_a, a_aa, a_ab, a_bb );
+            DecodeBitStrings2BitBlock( tmp_b, b_aa, b_ab, b_bb );
 
-            AddToContingency( case_cont.n0, tmp_val, a_aa, b_aa );
-            AddToContingency( case_cont.n1, tmp_val, a_aa, b_ab );
-            AddToContingency( case_cont.n2, tmp_val, a_aa, b_bb );
-            AddToContingency( case_cont.n3, tmp_val, a_ab, b_aa );
-            AddToContingency( case_cont.n4, tmp_val, a_ab, b_ab );
-            AddToContingency( case_cont.n5, tmp_val, a_ab, b_bb );
-            AddToContingency( case_cont.n6, tmp_val, a_bb, b_aa );
-            AddToContingency( case_cont.n7, tmp_val, a_bb, b_ab );
-            AddToContingency( case_cont.n8, tmp_val, a_bb, b_bb );
+            AddToContingency2BitBlock( case_cont.n0, tmp_val, a_aa, b_aa );
+            AddToContingency2BitBlock( case_cont.n1, tmp_val, a_aa, b_ab );
+            AddToContingency2BitBlock( case_cont.n2, tmp_val, a_aa, b_bb );
+            AddToContingency2BitBlock( case_cont.n3, tmp_val, a_ab, b_aa );
+            AddToContingency2BitBlock( case_cont.n4, tmp_val, a_ab, b_ab );
+            AddToContingency2BitBlock( case_cont.n5, tmp_val, a_ab, b_bb );
+            AddToContingency2BitBlock( case_cont.n6, tmp_val, a_bb, b_aa );
+            AddToContingency2BitBlock( case_cont.n7, tmp_val, a_bb, b_ab );
+            AddToContingency2BitBlock( case_cont.n8, tmp_val, a_bb, b_bb );
         }
 
         mask = *ctrl_ptr++;
@@ -836,18 +826,18 @@ void CompressedGenotypeTable3::getCaseControlContingencyTable( uint rIdx1, uint 
             tmp_a = a_val & mask;
             tmp_b = b_val & mask;
 
-            DecodeBitStrings( tmp_a, a_aa, a_ab, a_bb );
-            DecodeBitStrings( tmp_b, b_aa, b_ab, b_bb );
+            DecodeBitStrings2BitBlock( tmp_a, a_aa, a_ab, a_bb );
+            DecodeBitStrings2BitBlock( tmp_b, b_aa, b_ab, b_bb );
 
-            AddToContingency( ctrl_cont.n0, tmp_val, a_aa, b_aa );
-            AddToContingency( ctrl_cont.n1, tmp_val, a_aa, b_ab );
-            AddToContingency( ctrl_cont.n2, tmp_val, a_aa, b_bb );
-            AddToContingency( ctrl_cont.n3, tmp_val, a_ab, b_aa );
-            AddToContingency( ctrl_cont.n4, tmp_val, a_ab, b_ab );
-            AddToContingency( ctrl_cont.n5, tmp_val, a_ab, b_bb );
-            AddToContingency( ctrl_cont.n6, tmp_val, a_bb, b_aa );
-            AddToContingency( ctrl_cont.n7, tmp_val, a_bb, b_ab );
-            AddToContingency( ctrl_cont.n8, tmp_val, a_bb, b_bb );
+            AddToContingency2BitBlock( ctrl_cont.n0, tmp_val, a_aa, b_aa );
+            AddToContingency2BitBlock( ctrl_cont.n1, tmp_val, a_aa, b_ab );
+            AddToContingency2BitBlock( ctrl_cont.n2, tmp_val, a_aa, b_bb );
+            AddToContingency2BitBlock( ctrl_cont.n3, tmp_val, a_ab, b_aa );
+            AddToContingency2BitBlock( ctrl_cont.n4, tmp_val, a_ab, b_ab );
+            AddToContingency2BitBlock( ctrl_cont.n5, tmp_val, a_ab, b_bb );
+            AddToContingency2BitBlock( ctrl_cont.n6, tmp_val, a_bb, b_aa );
+            AddToContingency2BitBlock( ctrl_cont.n7, tmp_val, a_bb, b_ab );
+            AddToContingency2BitBlock( ctrl_cont.n8, tmp_val, a_bb, b_bb );
         }
 
     }
@@ -1036,10 +1026,6 @@ void CompressedGenotypeTable3::constructContingencyLookup() {
 
             }
         }
-    }
-
-    for( uint i = 0; i < 0x10000; ++i ) {
-        bit_count16[ i ] = ones16( i );
     }
 }
 

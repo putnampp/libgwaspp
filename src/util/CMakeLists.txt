@@ -1,4 +1,4 @@
-include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR}/src ${Boost_INCLUDE_DIR})
 
 # Utility classes
 LIST(APPEND SRCS interval/interval.cpp)

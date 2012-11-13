@@ -32,7 +32,7 @@
 
 #include <iostream>
 
-#include "common.h"
+#include "libgwaspp.h"
 #include "util/table/table.h"
 #include "util/index_set/indexer.h"
 
@@ -43,58 +43,6 @@
 
 namespace libgwaspp {
 namespace genetics {
-
-#ifndef DATA_BLOCK
-#define DATA_BLOCK 0
-#endif
-
-#if DATA_BLOCK == 0
-typedef ushort DataBlock;
-#define GetDataBlockAtPtr( x ) (*x)
-#define GetUshortAtDataBlockPtr( x ) (*x)
-#define GetHiByteAtDataBlockPtr( x ) (((*x) >> 8) & 0x00FF)
-#define GetLoByteAtDataBlockPtr( x ) ((*x) & 0x00FF)
-
-#define GetUshortAtDataBlock( x ) x
-#define GetHiByteAtDataBlock( x ) ((x >> 8) & 0x00FF)
-#define GetLoByteAtDataBlock( x ) (x & 0x00FF)
-
-#define SetUshortAtDataBlock(x, y) (x = y)
-#define SetHiByteAtDataBlock(x, y) (x = ((x & 0x00FF) | ( (y & 0xFF) << 8 )))
-#define SetLoByteAtDataBlock(x, y) (x = ((x & 0xFF00) | (y & 0xFF)))
-
-#define SetUshortAtDataBlockPtr(x, y) (*x = y)
-#define SetHiByteAtDataBlockPtr(x, y) (*x = ((*x & 0x00FF) | ( (y & 0xFF) << 8 )))
-#define SetLoByteAtDataBlockPtr(x, y) (*x = ((*x & 0xFF00) | (y & 0xFF)))
-
-#else
-
-union DataBlock {
-    ushort us;
-    struct {
-        byte hi, lo;
-    };
-    operator unsigned short() { return us; }
-};
-
-#define GetDataBlockAtPtr( x ) (*x)
-#define GetUshortAtDataBlockPtr( x ) x->us
-#define GetHiByteAtDataBlockPtr( x ) x->hi
-#define GetLoByteAtDataBlockPtr( x ) x->lo
-
-#define GetUshortAtDataBlock( x ) x.us
-#define GetHiByteAtDataBlock( x ) x.hi
-#define GetLoByteAtDataBlock( x ) x.lo
-
-#define SetUshortAtDataBlock(x, y) (x.us = y)
-#define SetHiByteAtDataBlock(x, y) (x.hi = (y & 0xFF))
-#define SetLoByteAtDataBlock(x, y) (x.lo = (y & 0xFF))
-
-#define SetUshortAtDataBlockPtr(x, y) (x->us = y)
-#define SetHiByteAtDataBlockPtr(x, y) (x->hi = (y & 0xFF))
-#define SetLoByteAtDataBlockPtr(x, y) (x->lo = (y & 0xFF))
-
-#endif
 
 class GenoTable : public util::Table < DataBlock >, public PairwiseMarkerAnalyzable, public SingleMarkerAnalyzable, public CaseControlSelectable {
 public:

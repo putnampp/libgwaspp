@@ -112,6 +112,8 @@ const string TEST_SELECT_DIST_DEBUG_KEY = "test-select-maf";
 const string VALIDATE_CALL_KEY = "valid-calls";
 const string VALIDATE_GENO_KEY = "valid-geno";
 
+const string COMPRESSION_LEVEL_KEY = "comp-level";
+
 bool parseArguments( int argc, char **argv, po::variables_map &vm );
 
 enum FileType { UNK, TPLINK, ILLUMINA };
@@ -130,7 +132,7 @@ int main( int argc, char **argv ) {
     string annot_file = vm[ CASE_CONTROL_ANNOTATION_FILE.c_str() ].as<string>();
     string out_file = vm[ OUTPUT_FILE_KEY.c_str() ].as<string>();
 
-    auto_ptr<GeneticData> gd( new GeneticData() );
+    auto_ptr<GeneticData> gd( new GeneticData( (eCompressionLevel) vm[ COMPRESSION_LEVEL_KEY ].as< int >() ) );
     auto_ptr<GeneticDataFile> ipf;  // phenotype file parser
     auto_ptr<GeneticDataFile> igf;  // genotype file parser
     auto_ptr<GeneticDataFile> iaf;  // annotation file parser
@@ -225,6 +227,7 @@ int main( int argc, char **argv ) {
     marker_ids->clear();
     individual_ids->clear();
 
+    cout << "DONE" << endl;
     return 0;
 }
 
@@ -247,6 +250,7 @@ bool parseArguments( int argc, char **argv, po::variables_map &vm ) {
     annotations.add_options()
     (( TPLINK_KEY + ",t").c_str(), "Providing genotype file in TPED format, and phenotype file in TFAM format")
     (( ILLUMINA_KEY + ",i").c_str(), "Providing genotype file in ILLU format, and a table of phenotype values")
+    (( COMPRESSION_LEVEL_KEY ).c_str(), po::value< int >()->default_value( e2BitBlockCompression ), "Specify which compression method to use default is 2-bit block compression")
     ;
 
     po::options_description tests("Tests");
@@ -297,7 +301,18 @@ bool parseArguments( int argc, char **argv, po::variables_map &vm ) {
         g_ft = ILLUMINA;
     } else {
         cout << "Guessing file format from extensions" << endl;
+    }
 
+    switch( (eCompressionLevel) vm[ COMPRESSION_LEVEL_KEY ].as< int >() ) {
+    case eBasicCompression:
+    case eByteCompression:
+    case eHalfByteCompression:
+    case e2BitBlockCompression:
+    case e3BitStream:
+        break;
+    default:
+        cout << "Invalid Compression Level specified.";
+        return false;
     }
 
     return true;

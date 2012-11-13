@@ -34,41 +34,64 @@ namespace genetics {
 CaseControlSet::CaseControlSet( const indexer *idx ) : possible_indices( idx ) {
     //ctor
     max_index = possible_indices->included_size() - 1;
-    block_count = ( (max_index + 1) >> 3 ) + 1;
+    block_count = ( possible_indices->included_size() >> 3 ) + 1;
+    stream_block_count = ( possible_indices->included_size() >> 4 ) + 1;
 
     int block_bit_width = (sizeof(ushort) << 3);
     assert( (PROCESSOR_WORD_SIZE % block_bit_width) == 0 );
 
     int block_per_pword = (PROCESSOR_WORD_SIZE / block_bit_width);
-    if( block_per_pword > 1 && block_count % block_per_pword ) {
-        block_count += ( block_per_pword - (block_count % block_per_pword));
+    if( block_per_pword > 1) {
+        if( block_count % block_per_pword ) {
+            block_count += ( block_per_pword - (block_count % block_per_pword));
+        }
+
+        if( stream_block_count % block_per_pword ) {
+            stream_block_count += (block_per_pword - (stream_block_count % block_per_pword));
+        }
     }
 
     byte_count = block_count * sizeof(ushort);
+    stream_byte_count = stream_block_count * sizeof(ushort);
 
     cout << "Maximum possible Case/Controls: " << possible_indices->maximum_size() << endl;
 
     buffer = new ushort[ block_count << 1 ];
+    stream_buffer = new ushort[ stream_byte_count << 1 ];
+
     control_set = buffer;
     case_set = buffer + block_count;
 
+    stream_control_set = stream_buffer;
+    stream_case_set = stream_control_set + stream_byte_count;
+
     control_set_end = case_set;
     case_set_end = case_set + block_count + 1;
+
+    stream_ctrl_end = stream_case_set;
+    stream_cs_end = stream_case_set + stream_byte_count + 1;
 
     case_count = 0; ctrl_count = 0; total_count = 0;
 }
 
 void CaseControlSet::setCases( const set<int> & case_idx ) {
     memset( case_set, 0, byte_count );
+    memset( stream_case_set, 0, stream_byte_count );
+
     set<int>::const_iterator it = case_idx.begin(), it_e = case_idx.end();
     uint block_offset, bit_offset;
+    uint s_block_offset, s_bit_offset;
 
     for( ; it != it_e; ++it ) {
         assert( *it <= ( int )max_index );
         block_offset = ( *it >> 3 );
         bit_offset = (( *it & 7 ) << 1 );
 
+        s_block_offset = ( *it >> 4 );
+        s_bit_offset = (*it & 0x0F );
+
         case_set[ block_offset ] = ( case_set[ block_offset ] | ( 0x0003 << bit_offset ) );
+        stream_case_set[ s_block_offset ] = ( stream_case_set[ s_block_offset ] | ( 1 << s_bit_offset ) );
         ++case_count;
     }
     case_count = ( uint ) case_idx.size();
@@ -78,20 +101,31 @@ void CaseControlSet::setCases( const set<int> & case_idx ) {
     for( uint i = 0; i < block_count; ++i) {
         cout << hex << (int)case_set[ i ] << " ";
     }
+    cout << endl;
+    for( uint i = 0; i < stream_block_count; ++i ) {
+        cout << hex << (int)stream_case_set[ i ] << " ";
+    }
     cout << dec << endl;
 }
 
 void CaseControlSet::setControls( const set<int> & ctrl_idx ) {
     memset( control_set, 0, byte_count );
+    memset( stream_control_set, 0, stream_byte_count );
+
     set<int>::const_iterator it = ctrl_idx.begin(), it_e = ctrl_idx.end();
     uint block_offset, bit_offset;
+    uint s_block_offset, s_bit_offset;
 
     for( ; it != it_e; ++it ) {
         assert( *it <= ( int )max_index );
         block_offset = ( *it >> 3 );
         bit_offset = (( *it & 7 ) << 1 );
 
+        s_block_offset = ( *it >> 4 );
+        s_bit_offset = ( *it & 0x0F );
+
         control_set[ block_offset ] = ( control_set[ block_offset ] | ( 0x0003 << bit_offset ) );
+        stream_control_set[ s_block_offset ] = ( stream_control_set[ s_block_offset ] | ( 1 << s_bit_offset ));
     }
     ctrl_count = ( uint ) ctrl_idx.size();
     total_count = case_count + ctrl_count;
@@ -100,6 +134,10 @@ void CaseControlSet::setControls( const set<int> & ctrl_idx ) {
     for( uint i = 0; i < block_count; ++i ) {
         cout << hex << (int) control_set[ i ] << " ";
     }
+    cout << endl;
+    for( uint i = 0; i < block_count; ++i ) {
+        cout << hex << (int) stream_control_set[ i ] << " ";
+    }
     cout << dec << endl;
 }
 
@@ -107,6 +145,9 @@ void CaseControlSet::setAllAsCases() {
     cout << "Getting here" << endl;
     memset( case_set, 0xFF, byte_count );
     memset( control_set, 0x00, byte_count );
+
+    memset( stream_case_set, 0xFF, stream_byte_count);
+    memset( stream_control_set, 0x00, stream_byte_count);
 
     case_count = max_index + 1;
     ctrl_count = 0;
@@ -125,6 +166,9 @@ void CaseControlSet::setAllAsControls() {
     memset( case_set, 0x00, byte_count );
     memset( control_set, 0xFF, byte_count );
 
+    memset( stream_case_set, 0x00, stream_byte_count );
+    memset( stream_control_set, 0xFF, stream_byte_count );
+    
     ctrl_count = max_index + 1;
     case_count = 0;
     total_count = ctrl_count;
@@ -141,6 +185,8 @@ void CaseControlSet::setAllAsControls() {
 void CaseControlSet::reset() {
     memset( case_set, 0x00, byte_count );
     memset( control_set, 0x00, byte_count );
+    memset( stream_case_set, 0x00, stream_byte_count );
+    memset( stream_control_set, 0x00, stream_byte_count );
 }
 
 bool CaseControlSet::isCase( uint idx ) {
@@ -154,6 +200,7 @@ bool CaseControlSet::isControl( uint idx ) {
 CaseControlSet::~CaseControlSet() {
     //dtor
     delete [] buffer;
+    delete [] stream_buffer;
 }
 
 }
