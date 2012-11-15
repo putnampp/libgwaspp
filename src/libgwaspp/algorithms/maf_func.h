@@ -71,6 +71,7 @@ void inline_cc_maf( GeneticData *gd, ostream *out);
 
 void inline_maf_print( GeneticData *gd, ostream *out );
 
+void genotype_dist_performance( GeneticData *gd, ostream *out );
 }
 }
 

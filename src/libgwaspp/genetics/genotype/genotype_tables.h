@@ -37,5 +37,6 @@
 #include "genetics/genotype/compressed_genotype_table2.h"
 #include "genetics/genotype/compressed_genotype_table3.h"
 #include "genetics/genotype/compressed_genotype_table4.h"
+#include "genetics/genotype/compressed_genotype_table5.h"
 
 #endif

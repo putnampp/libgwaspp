@@ -193,7 +193,7 @@ int main( int argc, char **argv ) {
     }
 
     if( vm.count(TEST_DISTRIBUTION_PERFORMANCE_KEY)) {
-        compute(compute_maf_perform, &*gd, out );
+        compute(genotype_dist_performance, &*gd, out );
     }
 
     if( vm.count( TEST_CONTINGENGY_PERFORMANCE_KEY ) ) {
@@ -309,6 +309,7 @@ bool parseArguments( int argc, char **argv, po::variables_map &vm ) {
     case eHalfByteCompression:
     case e2BitBlockCompression:
     case e3BitStream:
+    case e2BitStream:
         break;
     default:
         cout << "Invalid Compression Level specified.";

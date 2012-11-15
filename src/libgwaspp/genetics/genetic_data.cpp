@@ -70,6 +70,9 @@ void GeneticData::updateGenotypeTable() {
     case e3BitStream:
         geno_tbl = new CompressedGenotypeTable4( genotyped_markers, genotyped_individs );
         break;
+    case e2BitStream:
+        geno_tbl = new CompressedGenotypeTable5( genotyped_markers, genotyped_individs );
+        break;
     default:
         geno_tbl = new BasicGenotypeTable( genotyped_markers, genotyped_individs );
         break;

@@ -74,7 +74,7 @@ using namespace libgwaspp::algorithms;
 namespace libgwaspp {
 namespace genetics {
 
-enum eCompressionLevel { eBasicCompression = 0, eByteCompression, eHalfByteCompression, e2BitBlockCompression, e3BitStream };
+enum eCompressionLevel { eBasicCompression = 0, eByteCompression, eHalfByteCompression, e2BitBlockCompression, e3BitStream, e2BitStream };
 
 class GeneticData {
     public:

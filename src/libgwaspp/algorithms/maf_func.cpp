@@ -261,6 +261,26 @@ void select_cc_maf( GeneticData *gd, ostream *out ) {
     }
 }
 
+void genotype_dist_performance( GeneticData *gd, ostream *out ) {
+    int marker_count = gd->getGenotypedMarkersCount();
+    GenoTable &gt = *gd->getGenotypeTable();
+    
+    GenotypeDistribution dist;
+    const frequency_table &ft = *dist.getDistribution();
+    double _tot, _maf;
+
+    *out << "<RESULTS>" << endl;
+    INIT_LAPSE_TIME;
+    for( int i = 0; i < marker_count; ++i ) {
+        RECORD_START;
+        gt.getGenotypeDistribution( i, dist );
+        RECORD_STOP;
+        *out << (int) i;
+        PRINT_LAPSE( *out, "\t" );
+    }
+    *out << "</RESULTS>" << endl;
+}
+
 void inline_cc_maf( GeneticData *gd, ostream *out ) {
     int marker_count = gd->getGenotypedMarkersCount();
     GenoTable &gt = *gd->getGenotypeTable();
