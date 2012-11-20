@@ -55,6 +55,7 @@ bool IndividualGenotypeFile::populateGeneticData( string &filename, GeneticData 
 
         RECORD_STOP;
         PRINT_LAPSE(cout, "Parse Individuals Time Lapse: " );
+        cout << endl;
         // build markers
         marker_indexes.clear();
 
@@ -71,6 +72,7 @@ bool IndividualGenotypeFile::populateGeneticData( string &filename, GeneticData 
 
         RECORD_STOP;
         PRINT_LAPSE(cout, "Parse Marker Time Lapse: " );
+        cout << endl;
 
         RECORD_START;
         gd->createGenotypedMarkers( marker_indexes );
@@ -79,6 +81,7 @@ bool IndividualGenotypeFile::populateGeneticData( string &filename, GeneticData 
 
         RECORD_STOP;
         PRINT_LAPSE(cout, "Create Genotyped Marker Time Lapse: " );
+        cout << endl;
 
         marker_indexes.clear();
 
@@ -86,6 +89,7 @@ bool IndividualGenotypeFile::populateGeneticData( string &filename, GeneticData 
         gd->updateGenotypeTable();
         RECORD_STOP;
         PRINT_LAPSE(cout, "Lapsed time for updating Genotype Table for genotyped individuals and markers: " );
+        cout << endl;
 
         iFile->seekg( first_rec, ios::beg );
         iFile->clear();
@@ -103,6 +107,7 @@ bool IndividualGenotypeFile::populateGeneticData( string &filename, GeneticData 
 
         RECORD_STOP;
         PRINT_LAPSE(cout, "Lapsed time for compacting Genotype Data: " );
+        cout << endl;
     } else {
         success = false;
     }

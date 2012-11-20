@@ -77,6 +77,7 @@ void epistasis_all( void *input, void *output ) {
 
         out << "Single Contingencies " << ( int ) i << " x " << ( int )( marker_count - ( i + 1 ) ) << ": ";
         PRINT_LAPSE(out, "" );
+        out << endl;
     }
 }
 
@@ -123,6 +124,7 @@ void ContingencyPerformance( void * input, void * output ) {
 
         out << "Single Contingencies " << ( int ) i << " x " << ( int )( marker_count - ( i + 1 ) ) << ": ";
         PRINT_LAPSE( out, "" );
+        out << endl;
     }
 }
 
@@ -182,6 +184,7 @@ void epistasis_all2( void *input, void *output ) {
     RECORD_STOP;
     out << "Case/Control Contingencies " << ( int )( marker_count ) << ": ";
     PRINT_LAPSE( cout, "" );
+    cout << endl;
 }
 
 void EpistasisDebug( void * input, void * output ) {
@@ -267,6 +270,7 @@ void EpistasisPerformance( void * input, void * output ) {
     RECORD_STOP;
     out << "Case/Control Contingencies " << ( int )( marker_count ) << ": ";
     PRINT_LAPSE(cout, "" );
+    cout << endl;
 }
 
 double pairwise_epi_test ( const contingency_table &cs, const contingency_table &ct) {

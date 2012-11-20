@@ -66,7 +66,8 @@ if( $case_control ) {
 print "DONE\n";
 
 sub make_tplink_cc {
-    my ($mcount, $icount, $path, $cc) = @_;
+    my ($mcount, $icount, $path) = @_;
+    print $path."\n";
     open TPED, ">$path.tped" or die $!;
     open TFAM, ">$path.tfam" or die $!;
     open CASE_EXPECTED, ">$path.expected.case.dist" or die $!;

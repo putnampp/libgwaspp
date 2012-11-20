@@ -244,21 +244,27 @@ void select_cc_maf( GeneticData *gd, ostream *out ) {
     const frequency_table &_ctrls = *ccgd.getControlDistribution();
     double _tot, _maf;
 
+    //*out << "<INIT>" << endl;
     INIT_LAPSE_TIME;
     RECORD_START;
     gt.selectCaseControl( *gd->getCaseControlSet() );
     RECORD_STOP;
-    PRINT_LAPSE( *out, "Time to select Case/Controls: ");
-
+    *out << (int) -1;
+    PRINT_LAPSE( *out, "\t");
+    //*out << "</INIT>" << endl;
+    //*out << "<RESULT>" << endl;
     for( int i = 0; i < marker_count; ++i ) {
         RECORD_START;
         gt.getCaseControlGenotypeDistribution( i, ccgd );
         RECORD_STOP;
-        PRINT_LAPSE( *out, "Time to compute case/control (select) frequencies: " );
+        *out << (int) i;
+        PRINT_LAPSE( *out, "\t" );
+        *out << endl;
 
         maf( _cases, _tot, _maf );
         maf( _ctrls, _tot, _maf ); 
     }
+    //*out << "</RESULT>" << endl;
 }
 
 void genotype_dist_performance( GeneticData *gd, ostream *out ) {
@@ -266,10 +272,10 @@ void genotype_dist_performance( GeneticData *gd, ostream *out ) {
     GenoTable &gt = *gd->getGenotypeTable();
     
     GenotypeDistribution dist;
-    const frequency_table &ft = *dist.getDistribution();
-    double _tot, _maf;
+    //const frequency_table &ft = *dist.getDistribution();
+    //double _tot, _maf;
 
-    *out << "<RESULTS>" << endl;
+    //*out << "<RESULTS>" << endl;
     INIT_LAPSE_TIME;
     for( int i = 0; i < marker_count; ++i ) {
         RECORD_START;
@@ -277,8 +283,9 @@ void genotype_dist_performance( GeneticData *gd, ostream *out ) {
         RECORD_STOP;
         *out << (int) i;
         PRINT_LAPSE( *out, "\t" );
+        *out << endl;
     }
-    *out << "</RESULTS>" << endl;
+    //*out << "</RESULTS>" << endl;
 }
 
 void inline_cc_maf( GeneticData *gd, ostream *out ) {
@@ -291,17 +298,20 @@ void inline_cc_maf( GeneticData *gd, ostream *out ) {
     double _tot, _maf;
 
     CaseControlSet ccs = *gd->getCaseControlSet();
-
+    //*out << "<RESULT>" << endl;
     INIT_LAPSE_TIME;
     for( int i = 0; i < marker_count; ++i ) {
         RECORD_START;
         gt.getCaseControlGenotypeDistribution( i, ccs, ccgd );
         RECORD_STOP;
-        PRINT_LAPSE( *out, "Time to compute case/control (inline) frequencies: " );
+        *out << (int) i;
+        PRINT_LAPSE( *out, "\t" );
+        *out << endl;
         
         maf( _cases, _tot, _maf );
         maf( _ctrls, _tot, _maf );
     }
+    //*out << "</RESULT>" << endl;
 }
 
 void inline_maf_print( GeneticData *gd, ostream *out ) {
@@ -313,12 +323,14 @@ void inline_maf_print( GeneticData *gd, ostream *out ) {
     const frequency_table &ft = *dist.getDistribution();
     double _tot, _maf;
 
+    //cout << "<RESULT>" << endl;
     for( int i = 0; i < marker_count; ++i ) {
         gt.getGenotypeDistribution( i, dist );
         maf( ft, _tot, _maf );
 
         *out << (int)(individ_count - _tot) << "\t" << ft.aa << "\t" << ft.ab << "\t" << ft.bb << endl;
     }
+    //cout << "</RESULT>" << endl;
 }
 
 }

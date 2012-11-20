@@ -47,7 +47,7 @@ namespace util {
 
 #define FRAC_SEC_TIME 1000000000
 #define FRAC tv_nsec
-#define TIME_PRINT "%lu.%09lu s"
+#define TIME_PRINT "%lu.%09lus"
 #define TIME_ABRV "ns"
 
 #define GetTime(x) clock_gettime(CLOCK_MONOTONIC, &x)
@@ -57,7 +57,7 @@ typedef timespec TIME;
 
 #define FRAC_SEC_TIME 1000000
 #define FRAC tv_usec
-#define TIME_PRINT "%lu.%06lu s"
+#define TIME_PRINT "%lu.%06lus"
 #define TIME_ABRV "us"
 
 #define GetTime(x) gettimeofday(&x, NULL)
@@ -102,8 +102,7 @@ typedef timeval TIME;
 #define PRINT_LAPSE(out, x) COMPUTE_LAPSE;                                              \
                         out << x;                                                       \
                         AdjustTime( res );                                              \
-                        out << boost::format( TIME_PRINT ) % res.tv_sec % res.FRAC;     \
-                        out << "\n";
+                        out << boost::format( TIME_PRINT ) % res.tv_sec % res.FRAC;   
 #else
 #define PRINT_LAPSE(out, x)
 #endif

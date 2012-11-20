@@ -67,6 +67,7 @@ void compute( void ( *f )( void *, void * ), void *input, void *output ) {
 
     RECORD_STOP;
     PRINT_LAPSE(cout, "Total runtime: " );
+    cout << endl;
 }
 
 void compute( void ( *f )(GeneticData *, ostream *), GeneticData *gd, ostream *out ) {
@@ -80,7 +81,8 @@ void compute( void ( *f )(GeneticData *, ostream *), GeneticData *gd, ostream *o
     f( gd, out );
 
     RECORD_STOP;
-    PRINT_LAPSE( *out, "Total runtime: " );
+    PRINT_LAPSE( cout, "Total runtime: " );
+    cout << endl;
 }
 
 }

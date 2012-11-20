@@ -165,7 +165,7 @@ int main( int argc, char **argv ) {
         out = (ostream *) tmp;
     }
 
-    *out << "Start to populate data" << endl;
+    cout << "Start to populate data" << endl;
 
     INIT_LAPSE_TIME;
     RECORD_START;
@@ -173,17 +173,17 @@ int main( int argc, char **argv ) {
     ipf->populateGeneticData( pheno_file, &*gd );
 
     RECORD_STOP;
-    PRINT_LAPSE(*out, "Time to populate Phenotype Data: " );
+    PRINT_LAPSE(cout, "Time to populate Phenotype Data: " );
+    cout << endl;
 
-    *out << "Found " << gd->getIndividualCount() << " individuals." << endl;
-    *out << "Found " << gd->getPhenotypeCount() << " phenotyped traits." << endl;
+    cout << "Found " << gd->getIndividualCount() << " individuals." << endl;
+    cout << "Found " << gd->getPhenotypeCount() << " phenotyped traits." << endl;
 
-    *out << "Starting to populate genotype data" << endl;
+    cout << "Starting to populate genotype data" << endl;
     igf->populateGeneticData( geno_file, &*gd );
 
-    *out << "Genotyped Individual Count: " << gd->getGenotypedIndividualsCount() << endl;
-    *out << "Found " << gd->getMarkerCount() << " markers" << endl;
-
+    cout << "Genotyped Individual Count: " << gd->getGenotypedIndividualsCount() << endl;
+    cout << "Found " << gd->getMarkerCount() << " markers" << endl;
     iaf->populateGeneticData( annot_file, &*gd );
 
     BasicInput inp_all( gd.get(), marker_ids.get(), individual_ids.get() );
