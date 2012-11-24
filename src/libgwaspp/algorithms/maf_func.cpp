@@ -251,6 +251,7 @@ void select_cc_maf( GeneticData *gd, ostream *out ) {
     RECORD_STOP;
     *out << (int) -1;
     PRINT_LAPSE( *out, "\t");
+    *out << endl;
     //*out << "</INIT>" << endl;
     //*out << "<RESULT>" << endl;
     for( int i = 0; i < marker_count; ++i ) {
