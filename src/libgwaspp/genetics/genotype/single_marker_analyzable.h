@@ -33,6 +33,8 @@
 #include "genetics/analyzable/case_control_set.h"
 #include "genetics/genotype/common_genotype.h"
 
+#include "genetics/genotype/case_control_selectable.h"
+
 namespace libgwaspp {
 namespace genetics {
 
@@ -124,7 +126,7 @@ protected:
     header_table genotypes;
 };
 
-class SingleMarkerAnalyzable {
+class SingleMarkerAnalyzable : public virtual CaseControlSelectable {
 public:
     SingleMarkerAnalyzable() : row_selected( false ), current_dist_rIdx( -1 ) {}
     virtual void selectMarker( uint rIdx ) = 0;
@@ -138,7 +140,9 @@ public:
     virtual void getGenotypeDistribution( uint rIdx, GenotypeDistribution &dist ) = 0;
     virtual void getCaseControlGenotypeDistribution( uint rIdx, CaseControlSet &ccs, CaseControlGenotypeDistribution &ccgd ) = 0;
 
+    // assumes that CaseControl Set has already been selected
     virtual void getCaseControlGenotypeDistribution( uint rIdx, CaseControlGenotypeDistribution &ccgd ) = 0;
+    virtual void getCaseControlGenotypeDistribution( uint rIdx, CaseControlGenotypeDistribution &ccgd, marginal_information & m ) = 0;
 
     virtual ~SingleMarkerAnalyzable() {}
 protected:

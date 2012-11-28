@@ -31,6 +31,10 @@
 
 #include <iostream>
 #include <fstream>
+
+#define MATHLIB_STANDALONE
+#include "Rmath.h"
+
 #include "genetics/genotype/common_genotype.h"
 
 using namespace std;
@@ -87,6 +91,8 @@ inline int PopCount( uint v ) {
 #define AddToContingencyStream( n, a, b )    \
     n += PopCount( (a & b ) );
 #endif
+
+void computeMarginalInformation( const frequency_table & _cases, const frequency_table & _ctrls, double nIndivids, marginal_information & m);
 
 }
 }

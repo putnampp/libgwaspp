@@ -131,6 +131,7 @@ public:
     void getGenotypeDistribution( uint rIdx, GenotypeDistribution &dist );
     void getCaseControlGenotypeDistribution( uint rIdx, CaseControlSet &ccs, CaseControlGenotypeDistribution &ccgd );
     void getCaseControlGenotypeDistribution( uint rIdx, CaseControlGenotypeDistribution &ccgd );
+    void getCaseControlGenotypeDistribution( uint rIdx, CaseControlGenotypeDistribution &ccgd, marginal_information & m ) { assert(false); }
 
     void selectMarkerPair( uint maIdx, uint mbIdx );
     void selectCaseControl( CaseControlSet &ccs );
@@ -138,6 +139,9 @@ public:
     void getContingencyTable( uint rIdx1, uint rIdx2, ContingencyTable &ct );
     void getContingencyTable( uint rIdx1, uint rIdx2, ushort *column_set, ContingencyTable &ct );
     void getCaseControlContingencyTable( uint rIdx1, uint rIdx2, CaseControlSet &ccs, CaseControlContingencyTable &ccct );
+
+    void getCaseControlContingencyTable( uint rIdx1, uint rIdx2, CaseControlContingencyTable &ccct );
+    void getCaseControlContingencyTable( uint rIdx1, uint rIdx2, const marginal_information &m1, const marginal_information &m2, CaseControlContingencyTable & ccct );
 
     virtual ~CompressedGenotypeTable4();
 protected:

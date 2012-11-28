@@ -847,6 +847,13 @@ void CompressedGenotypeTable3::getCaseControlContingencyTable( uint rIdx1, uint 
 
     ccct.updateContingencyTables(case_cont, ctrl_cont);
 }
+void CompressedGenotypeTable3::getCaseControlContingencyTable( uint rIdx1, uint rIdx2, CaseControlContingencyTable &ccct ) {
+    assert(false);
+}
+
+void CompressedGenotypeTable3::getCaseControlContingencyTable( uint rIdx1, uint rIdx2, const marginal_information &m1, const marginal_information &m2, CaseControlContingencyTable & ccct ) {
+    assert(false);
+}
 
 //void CompressedGenotypeTable3::getCaseControlContingencyTable( uint rIdx1, uint rIdx2, CaseControlSet &ccs, CaseControlContingencyTable &ccct ) {
 //    DataBlock *ma_tmp_data = data + rIdx1 * blocks_per_row + 1; // + 1 to skip header

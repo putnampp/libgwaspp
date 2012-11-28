@@ -43,7 +43,7 @@ namespace algorithms {
 using namespace libgwaspp::genetics;
 using namespace std;
 
-inline void maf( const frequency_table & ft, double & tot, double & maf ) {
+inline void MinorAlleleFrequency( const frequency_table & ft, double & tot, double & maf ) {
     tot = ft.aa;
     maf = 2.0 * tot;
     tot += ft.ab;

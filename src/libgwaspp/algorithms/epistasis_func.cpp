@@ -273,6 +273,40 @@ void EpistasisPerformance( void * input, void * output ) {
     cout << endl;
 }
 
+void computeBoost( GeneticData * gd, ostream * out ) {
+    CaseControlSet &ccs = *gd->getCaseControlSet();
+
+    int nCases = ccs.getCaseCount();
+    int nControls = ccs.getControlCount();
+    int nIndivids = nCases + nControls;
+
+    GenoTable &gt = *gd->getGenotypeTable();
+
+    // pre-select case/control individuals
+    gt.selectCaseControl( ccs );
+
+    // pre-compute marginal distributions for all markers
+    marginal_information * pMargins = NULL;
+    computeMargins( gt, nIndivids, pMargins );
+}
+
+void computeMargins( GenoTable & gt, int nIndivids, marginal_information *& pMargins ) {
+    int markerCount = gt.row_size();
+
+    if( pMargins != NULL ) {
+        delete [] pMargins;
+    }
+
+    pMargins = new marginal_information[ markerCount ];
+
+    CaseControlGenotypeDistribution ccgd;
+
+    for ( int i = 0; i < markerCount; ++i ) {
+        // assumes individuals have already been separated into cases and controls
+        gt.getCaseControlGenotypeDistribution( i, ccgd, pMargins[i] );
+    }
+}
+
 double pairwise_epi_test ( const contingency_table &cs, const contingency_table &ct) {
     static int cn[ 9 ];                                 // two-locus genotype count in all samples
     static double pab[ 9 ];                             // conditional genotype probability p(A|B)

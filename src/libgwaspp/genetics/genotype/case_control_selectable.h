@@ -28,14 +28,31 @@
 #ifndef CASE_CONTROL_SELECTABLE_H_
 #define CASE_CONTROL_SELECTABLE_H_
 
+#include "genetics/genotype/common_genotype.h"
 #include "genetics/genotype/geno_table.h"
 #include "genetics/analyzable/case_control_set.h"
 
 namespace libgwaspp {
 namespace genetics {
 
-struct CaseControlSelectable {
+class CaseControlSelectable {
+public:
+    CaseControlSelectable() : m_cases_controls( NULL ) {}
+
     virtual void selectCaseControl( CaseControlSet & ccs ) = 0;
+
+    virtual ~CaseControlSelectable() {
+        if( m_cases_controls != NULL )
+            delete [] m_cases_controls;
+    }
+protected:
+    uint nCaseControlBlockCount;
+    uint nControlBlockOffset;
+    uint nCaseBlockCount, nControlBlockCount;
+    ulong nCaseControlSize;
+    DataBlock * m_cases_controls;
+
+    uint nCaseCount, nControlCount, nIndivids;
 };
 
 }

@@ -693,6 +693,14 @@ void CompressedGenotypeTable4::getCaseControlContingencyTable( uint rIdx1, uint 
     ccct.updateContingencyTables(case_cont, ctrl_cont);
 }
 
+void CompressedGenotypeTable4::getCaseControlContingencyTable( uint rIdx1, uint rIdx2, CaseControlContingencyTable &ccct ) {
+    assert(false);
+}
+
+void CompressedGenotypeTable4::getCaseControlContingencyTable( uint rIdx1, uint rIdx2, const marginal_information &m1, const marginal_information &m2, CaseControlContingencyTable & ccct ) {
+    assert(false);
+}
+
 void CompressedGenotypeTable4::constructCountLookup( ) {
     genotype_counts counts;
     for( uint i = 0; i < 0x10000; ++i ) {

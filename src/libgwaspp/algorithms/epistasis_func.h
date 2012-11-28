@@ -51,6 +51,11 @@ namespace algorithms {
 
 using namespace libgwaspp::genetics;
 
+//struct marginal_information {
+//    frequency_table margins, cases, controls;
+//    double dMarginalEntropy, dMarginalEntropy_Y;
+//};
+
 const int GT_COUNT = 3;
 const int GT_BUFFER_COUNT = 2;
 const int GT_BUFFER_SIZE = GT_COUNT *GT_BUFFER_COUNT;
@@ -64,7 +69,11 @@ void ContingencyPerformance( void * input, void * output );
 void EpistasisDebug( void * input, void * output );
 void EpistasisPerformance( void * input, void * output );
 
+void computeMargins( GenoTable & gt, int nIndivids, marginal_information *& pMargins );
+void computeBoost( GeneticData *gd, ostream *out );
+
 double pairwise_epi_test( const contingency_table &_case, const contingency_table &_ctrl);
+double pairwise_epi_test( const contingency_table &_case, const contingency_table &_ctrl, const marginal_information & m1, const marginal_information & m2 );
 
 }
 }

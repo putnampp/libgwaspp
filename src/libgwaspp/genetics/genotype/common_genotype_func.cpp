@@ -69,5 +69,64 @@ void init_bit_count( byte * _count ) {
     }
 }
 
+void computeMarginalInformation( const frequency_table & _cases, const frequency_table & _ctrls, double nIndivids, marginal_information & m) {
+    CopyFrequencyTable( m.cases, _cases );
+    CopyFrequencyTable( m.controls, _ctrls );
+
+    m.dMarginalEntropy = 0.0;
+    m.dMarginalEntropy_Y = 0.0;
+
+    double tmp;
+    m.margins.xx = _cases.xx + _ctrls.xx;
+
+    m.margins.aa = _cases.aa + _ctrls.aa;
+    if( m.margins.aa > 0 ) {
+        tmp = (double) m.margins.aa / nIndivids;
+        m.dMarginalEntropy += -(tmp) * log(tmp);
+    }
+
+    if( m.cases.aa > 0 ) {
+        tmp = (double) m.cases.aa / nIndivids;
+        m.dMarginalEntropy_Y += -(tmp) * log(tmp);
+    }
+
+    if( m.controls.aa > 0 ) {
+        tmp = (double) m.controls.aa / nIndivids;
+        m.dMarginalEntropy_Y += -(tmp) * log(tmp);
+    }
+
+    m.margins.ab = _cases.ab + _ctrls.ab;
+    if( m.margins.ab > 0 ) {
+        tmp = (double) m.margins.ab / nIndivids;
+        m.dMarginalEntropy += -(tmp) * log(tmp);
+    }
+
+    if( m.cases.ab > 0 ) {
+        tmp = (double) m.cases.ab / nIndivids;
+        m.dMarginalEntropy_Y += -(tmp) * log(tmp);
+    }
+
+    if( m.controls.ab > 0 ) {
+        tmp = (double) m.controls.ab / nIndivids;
+        m.dMarginalEntropy_Y += -(tmp) * log(tmp);
+    }
+
+    m.margins.bb = _cases.bb + _ctrls.bb;
+    if( m.margins.bb > 0 ) {
+        tmp = (double) m.margins.bb / nIndivids;
+        m.dMarginalEntropy += -(tmp) * log(tmp);
+    }
+
+    if( m.cases.bb > 0 ) {
+        tmp = (double) m.cases.bb / nIndivids;
+        m.dMarginalEntropy_Y += -(tmp) * log(tmp);
+    }
+
+    if( m.controls.bb > 0 ) {
+        tmp = (double) m.controls.bb/ nIndivids;
+        m.dMarginalEntropy_Y += -(tmp) * log(tmp);
+    }
+}
+
 }
 }

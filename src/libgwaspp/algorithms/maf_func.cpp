@@ -231,7 +231,7 @@ void compute_maf_perform( GeneticData *gd, ostream *out) {
 
     for( int i = 0; i < marker_count; ++i ) {
         gt.getGenotypeDistribution( i, dist );
-        maf( ft, _tot, _maf );
+        MinorAlleleFrequency( ft, _tot, _maf );
     }
 }
 
@@ -262,8 +262,8 @@ void select_cc_maf( GeneticData *gd, ostream *out ) {
         PRINT_LAPSE( *out, "\t" );
         *out << endl;
 
-        maf( _cases, _tot, _maf );
-        maf( _ctrls, _tot, _maf ); 
+        MinorAlleleFrequency( _cases, _tot, _maf );
+        MinorAlleleFrequency( _ctrls, _tot, _maf ); 
     }
     //*out << "</RESULT>" << endl;
 }
@@ -309,8 +309,8 @@ void inline_cc_maf( GeneticData *gd, ostream *out ) {
         PRINT_LAPSE( *out, "\t" );
         *out << endl;
         
-        maf( _cases, _tot, _maf );
-        maf( _ctrls, _tot, _maf );
+        MinorAlleleFrequency( _cases, _tot, _maf );
+        MinorAlleleFrequency( _ctrls, _tot, _maf );
     }
     //*out << "</RESULT>" << endl;
 }
@@ -327,7 +327,7 @@ void inline_maf_print( GeneticData *gd, ostream *out ) {
     //cout << "<RESULT>" << endl;
     for( int i = 0; i < marker_count; ++i ) {
         gt.getGenotypeDistribution( i, dist );
-        maf( ft, _tot, _maf );
+        MinorAlleleFrequency( ft, _tot, _maf );
 
         *out << (int)(individ_count - _tot) << "\t" << ft.aa << "\t" << ft.ab << "\t" << ft.bb << endl;
     }

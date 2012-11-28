@@ -33,6 +33,8 @@
 #include "genetics/analyzable/case_control_set.h"
 #include "genetics/genotype/common_genotype.h"
 
+#include "genetics/genotype/case_control_selectable.h"
+
 namespace libgwaspp {
 namespace genetics {
 
@@ -161,7 +163,7 @@ class CaseControlContingencyTable {
         header_table ma_header, mb_header;
 };
 
-class PairwiseMarkerAnalyzable {
+class PairwiseMarkerAnalyzable : public virtual CaseControlSelectable {
     public:
         PairwiseMarkerAnalyzable() : maIdx( -1 ), mbIdx( -1 ) {}
 
@@ -174,6 +176,10 @@ class PairwiseMarkerAnalyzable {
         virtual void getContingencyTable( uint rIdx1, uint rIdx2, ContingencyTable &ct ) = 0;
         virtual void getContingencyTable( uint rIdx1, uint rIdx2, ushort * column_set, ContingencyTable &ct ) = 0;
         virtual void getCaseControlContingencyTable( uint rIdx1, uint rIdx2, CaseControlSet &ccs, CaseControlContingencyTable &ccct ) = 0;
+
+        // assumes Case Control Sets have already been selected using selectCaseControl
+        virtual void getCaseControlContingencyTable( uint rIdx1, uint rIdx2, CaseControlContingencyTable &ccct ) = 0;
+        virtual void getCaseControlContingencyTable( uint rIdx1, uint rIdx2, const marginal_information &m1, const marginal_information &m2, CaseControlContingencyTable & ccct ) = 0;
 
         virtual ~PairwiseMarkerAnalyzable() {}
     protected:

@@ -380,6 +380,13 @@ void CompressedGenotypeTable2::getContingencyTable( uint rIdx1, uint rIdx2, Cont
 void CompressedGenotypeTable2::getCaseControlContingencyTable( uint rIdx1, uint rIdx2, CaseControlSet &ccs, CaseControlContingencyTable &ccct ) {
     assert( false );
 }
+void CompressedGenotypeTable2::getCaseControlContingencyTable( uint rIdx1, uint rIdx2, CaseControlContingencyTable &ccct ) {
+    assert(false);
+}
+
+void CompressedGenotypeTable2::getCaseControlContingencyTable( uint rIdx1, uint rIdx2, const marginal_information &m1, const marginal_information &m2, CaseControlContingencyTable & ccct ) {
+    assert(false);
+}
 
 bool CompressedGenotypeTable2::isGenotypeHomozygous( ushort enc ) {
     // AA == 0; CC == 5; GG == 10; TT == 15
