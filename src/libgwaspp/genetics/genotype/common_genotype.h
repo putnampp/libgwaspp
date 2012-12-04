@@ -93,9 +93,9 @@ union joint_genotypes {
 struct marginal_information {
     frequency_table margins, cases, controls;
     double dMarginalEntropy, dMarginalEntropy_Y;
+    double dPbc[ 8 ];   // cases[4]; controls[4]
+    double dPca[ 8 ];   // cases[4]; controls[4]
 };
-
-void computeMarginalInformation( const frequency_table & _cases, const frequency_table & _ctrls, double nIndivids, marginal_information & m);
 
 #ifndef ResetJointGenotype
 #define ResetJointGenotype( x ) x.ul = 0; x.b = 0;

@@ -29,9 +29,12 @@
 #ifndef PAIRWISE_MARKER_ANALYZABLE_H
 #define PAIRWISE_MARKER_ANALYZABLE_H
 
+#include <fstream>
+
 #include "common.h"
 #include "genetics/analyzable/case_control_set.h"
 #include "genetics/genotype/common_genotype.h"
+#include "genetics/genotype/common_genotype_func.h"
 
 #include "genetics/genotype/case_control_selectable.h"
 
@@ -99,6 +102,8 @@ class ContingencyTable {
 
 class CaseControlContingencyTable {
     public:
+        friend ostream& operator<<( ostream & out, CaseControlContingencyTable & ccct );
+
         CaseControlContingencyTable() : ma_rIdx( -1 ), mb_rIdx( -1 ) { reset(); }
 
         uint getMarkerAIndex() { return ma_rIdx; }
@@ -196,6 +201,14 @@ class PairwiseMarkerAnalyzable : public virtual CaseControlSelectable {
         contingency_table _contingency;
         header_table ma_header, mb_header;
 };
+
+inline ostream & operator<<(ostream & out, CaseControlContingencyTable & ccct ) {
+    out << "Cases" << endl;
+    out << ccct.case_contin;
+    out << "Controls" << endl;
+    out << ccct.control_contin;
+    return out;
+}
 
 }
 }

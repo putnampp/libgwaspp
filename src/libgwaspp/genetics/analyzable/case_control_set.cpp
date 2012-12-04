@@ -82,6 +82,7 @@ void CaseControlSet::setCases( const set<int> & case_idx ) {
     uint block_offset, bit_offset;
     uint s_block_offset, s_bit_offset;
 
+    case_count = 0;
     for( ; it != it_e; ++it ) {
         assert( *it <= ( int )max_index );
         block_offset = ( *it >> 3 );
@@ -94,9 +95,11 @@ void CaseControlSet::setCases( const set<int> & case_idx ) {
         stream_case_set[ s_block_offset ] = ( stream_case_set[ s_block_offset ] | ( 1 << s_bit_offset ) );
         ++case_count;
     }
+    assert(case_count == (uint) case_idx.size());
     case_count = ( uint ) case_idx.size();
     total_count = case_count + ctrl_count;
 
+/*
     cout << "Cases: ";
     for( uint i = 0; i < block_count; ++i) {
         cout << hex << (int)case_set[ i ] << " ";
@@ -106,6 +109,7 @@ void CaseControlSet::setCases( const set<int> & case_idx ) {
         cout << hex << (int)stream_case_set[ i ] << " ";
     }
     cout << dec << endl;
+*/
 }
 
 void CaseControlSet::setControls( const set<int> & ctrl_idx ) {
@@ -116,6 +120,7 @@ void CaseControlSet::setControls( const set<int> & ctrl_idx ) {
     uint block_offset, bit_offset;
     uint s_block_offset, s_bit_offset;
 
+    ctrl_count = 0;
     for( ; it != it_e; ++it ) {
         assert( *it <= ( int )max_index );
         block_offset = ( *it >> 3 );
@@ -126,10 +131,12 @@ void CaseControlSet::setControls( const set<int> & ctrl_idx ) {
 
         control_set[ block_offset ] = ( control_set[ block_offset ] | ( 0x0003 << bit_offset ) );
         stream_control_set[ s_block_offset ] = ( stream_control_set[ s_block_offset ] | ( 1 << s_bit_offset ));
+        ctrl_count++;
     }
+    assert(ctrl_count == (uint) ctrl_idx.size());
     ctrl_count = ( uint ) ctrl_idx.size();
     total_count = case_count + ctrl_count;
-
+/*
     cout << "Controls: ";
     for( uint i = 0; i < block_count; ++i ) {
         cout << hex << (int) control_set[ i ] << " ";
@@ -139,10 +146,10 @@ void CaseControlSet::setControls( const set<int> & ctrl_idx ) {
         cout << hex << (int) stream_control_set[ i ] << " ";
     }
     cout << dec << endl;
+*/
 }
 
 void CaseControlSet::setAllAsCases() {
-    cout << "Getting here" << endl;
     memset( case_set, 0xFF, byte_count );
     memset( control_set, 0x00, byte_count );
 
@@ -155,11 +162,13 @@ void CaseControlSet::setAllAsCases() {
 
     case_set[ block_count - 1 ] &=  ( 0xFFFF >> (( (7 - ( max_index & 7 )) << 1 ) ) );
 
+/*
     cout << "Cases: ";
     for( uint i = 0; i < block_count; ++i) {
         cout << hex << (int)case_set[ i ] << " ";
     }
     cout << dec << endl;
+*/
 }
 
 void CaseControlSet::setAllAsControls() {

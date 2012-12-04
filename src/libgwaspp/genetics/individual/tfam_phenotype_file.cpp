@@ -82,6 +82,7 @@ bool TfamPhenotypeFile::parseNextRecord( istream *iFile, GeneticData *gd, char d
     parser.str( line );
     parser.clear();
 
+    delim = ' ';
 
     getline( parser, tok, delim );  // skip family id column
     getline( parser, id, delim );   // get the current individuals id

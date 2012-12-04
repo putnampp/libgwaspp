@@ -51,6 +51,73 @@ void printFrequencyDistribution( const frequency_table & ft, ostream & out, bool
     out << dec << ft.aa << "\t" << ft.ab << "\t" << ft.bb << endl;
 }
 
+ostream &operator<<(ostream &out, frequency_table & ft ) {
+    out << dec;
+    for( int i = 1; i < 4; ++i) {
+        out << "\t" << ft.freq[i];
+    }
+    return out;
+}
+
+ostream &operator<<(ostream &out, contingency_table & ct ) {
+    out << dec << "\tBB\tBb\tbb" << endl;
+    for( int i = 0; i < 9; ++i) {
+        switch( i ) {
+            case 0:
+                out << "AA";
+                break;
+            case 3:
+                out << "Aa";
+                break;
+            case 6:
+                out << "aa";
+                break;
+            default:
+                break;
+        }
+
+        out << "\t" << ct.contin[i];
+
+        switch( i ) {
+            case 2:
+            case 5:
+            case 8:
+                out << endl;
+            default:
+                break;
+        }
+    }
+    return out;
+}
+
+ostream &operator<<(ostream &out, marginal_information &mi ) {
+    out << dec << "\tXX\tAA\tAB\tBB\t\tPbc_XX\tPbc_AA\tPbc_AB\tPbc_BB\t\tPca_XX\tPca_AA\tPca_AB\tPca_BB" << endl;
+    out << "Cases" << mi.cases;
+
+    for( int i = 1; i < 4; ++i) {
+        out << "\t" << mi.dPbc[i];
+    }
+    for( int i = 1; i < 4; ++i) {
+        out << "\t" << mi.dPca[i];
+    }
+    out << endl;
+
+    out << "Controls" << mi.controls;
+    for( int i = 5; i < 8; ++i) {
+        out << "\t" << mi.dPbc[i];
+    }
+    for( int i = 5; i < 8; ++i) {
+        out << "\t" << mi.dPca[i];
+    }
+    out << endl;
+
+    out << "Margins" << mi.margins << endl;
+
+    out << "Entropy\t" << mi.dMarginalEntropy << endl;
+    out << "Entropy_Y\t" << mi.dMarginalEntropy_Y << endl;
+    return out;
+}
+
 
 // Modified version of ones32 found on
 // http://aggregate.org/MAGIC/#Population Count (Ones Count)
@@ -69,62 +136,51 @@ void init_bit_count( byte * _count ) {
     }
 }
 
-void computeMarginalInformation( const frequency_table & _cases, const frequency_table & _ctrls, double nIndivids, marginal_information & m) {
+void computeMarginalInformation( const frequency_table & _cases, const frequency_table & _ctrls, uint nIndivids, marginal_information & m) {
     CopyFrequencyTable( m.cases, _cases );
     CopyFrequencyTable( m.controls, _ctrls );
+
+    uint nCases = m.cases.xx + m.cases.aa + m.cases.ab + m.cases.bb;
+    uint nControls = m.controls.xx + m.controls.aa + m.controls.ab + m.controls.bb;
+
+    assert( nCases + nControls == nIndivids );
 
     m.dMarginalEntropy = 0.0;
     m.dMarginalEntropy_Y = 0.0;
 
+    uint * mar = &m.margins.freq[0];
+    uint * _ca = &m.cases.freq[0];
+    uint * _co = &m.controls.freq[0];
+
+    double * pbc_ca = &m.dPbc[0];
+    double * pbc_co = &m.dPbc[4];
+    double * pca_ca = &m.dPca[0];
+    double * pca_co = &m.dPca[4];
+
     double tmp;
-    m.margins.xx = _cases.xx + _ctrls.xx;
+    for( int i = 0; i < 4; ++i ) {
+        *mar = *_ca + *_co;
+        if( *mar > 0 ) {
+            tmp = (double) *mar / (double) nIndivids;
+            m.dMarginalEntropy += -(tmp) * log(tmp);
+        }
 
-    m.margins.aa = _cases.aa + _ctrls.aa;
-    if( m.margins.aa > 0 ) {
-        tmp = (double) m.margins.aa / nIndivids;
-        m.dMarginalEntropy += -(tmp) * log(tmp);
-    }
+        if( *_ca > 0 ) {
+            tmp = (double) *_ca / nIndivids;
+            m.dMarginalEntropy_Y += -(tmp) * log(tmp);
+            *pbc_ca = (double) *_ca / (double) nCases;
+            *pca_ca = (double) *_ca / *mar;
+        }
 
-    if( m.cases.aa > 0 ) {
-        tmp = (double) m.cases.aa / nIndivids;
-        m.dMarginalEntropy_Y += -(tmp) * log(tmp);
-    }
+        if( *_co > 0 ) {
+            tmp = (double) *_co / nIndivids;
+            m.dMarginalEntropy_Y += -(tmp) * log(tmp);
 
-    if( m.controls.aa > 0 ) {
-        tmp = (double) m.controls.aa / nIndivids;
-        m.dMarginalEntropy_Y += -(tmp) * log(tmp);
-    }
+            *pbc_co = (double) *_co / (double) nControls;
+            *pca_co = (double) *_co / (double) *mar;
+        }
 
-    m.margins.ab = _cases.ab + _ctrls.ab;
-    if( m.margins.ab > 0 ) {
-        tmp = (double) m.margins.ab / nIndivids;
-        m.dMarginalEntropy += -(tmp) * log(tmp);
-    }
-
-    if( m.cases.ab > 0 ) {
-        tmp = (double) m.cases.ab / nIndivids;
-        m.dMarginalEntropy_Y += -(tmp) * log(tmp);
-    }
-
-    if( m.controls.ab > 0 ) {
-        tmp = (double) m.controls.ab / nIndivids;
-        m.dMarginalEntropy_Y += -(tmp) * log(tmp);
-    }
-
-    m.margins.bb = _cases.bb + _ctrls.bb;
-    if( m.margins.bb > 0 ) {
-        tmp = (double) m.margins.bb / nIndivids;
-        m.dMarginalEntropy += -(tmp) * log(tmp);
-    }
-
-    if( m.cases.bb > 0 ) {
-        tmp = (double) m.cases.bb / nIndivids;
-        m.dMarginalEntropy_Y += -(tmp) * log(tmp);
-    }
-
-    if( m.controls.bb > 0 ) {
-        tmp = (double) m.controls.bb/ nIndivids;
-        m.dMarginalEntropy_Y += -(tmp) * log(tmp);
+        ++mar; ++_ca; ++_co; ++pbc_ca; ++pbc_co; ++pca_ca; ++pca_co;
     }
 }
 

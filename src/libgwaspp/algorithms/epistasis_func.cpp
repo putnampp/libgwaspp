@@ -279,6 +279,7 @@ void computeBoost( GeneticData * gd, ostream * out ) {
     int nCases = ccs.getCaseCount();
     int nControls = ccs.getControlCount();
     int nIndivids = nCases + nControls;
+    int nMarkerCount = 0;
 
     GenoTable &gt = *gd->getGenotypeTable();
 
@@ -287,21 +288,410 @@ void computeBoost( GeneticData * gd, ostream * out ) {
 
     // pre-compute marginal distributions for all markers
     marginal_information * pMargins = NULL;
-    computeMargins( gt, nIndivids, pMargins );
+    marginal_information * pMar1, * pMar2;
+    computeMargins( gt, nIndivids, pMargins, nMarkerCount );
+
+    vector< uint > filteredIndices;
+
+    for( uint i = 0; i < (uint)nMarkerCount; ++i ) {
+        if( pMargins[i].margins.xx == 0 )
+            filteredIndices.push_back(i);
+    }
+
+    vector< uint >::const_iterator itIdx1, itIdx2;
+    uint idx;
+    CaseControlContingencyTable ccct;
+
+    const contingency_table & contin_ca = *ccct.getCaseContingencyTable();
+    const contingency_table & contin_co = *ccct.getControlContingencyTable();
+
+    const uint * pContinCa, * pContinCo, *denom;
+    double dPab, *pPbc_ca, *pPbc_co, *pPca_ca, *pPca_co;
+    double tao, interMeasure;
+    double tmp1, tmp2, tmp3;
+
+    typedef pair< uint, uint > SNPPair;
+    typedef pair< SNPPair, double> SNPInteractionPair;
+    vector< SNPInteractionPair > passingThreshold;
+
+    double maxInteraction = -99999999, minInteraction = 999999999, thresholdRecord = 30.0;
+
+    *out << "Pre-screening " << filteredIndices.size() << " SNP interactions" << endl;
+
+    INIT_LAPSE_TIME;
+    RECORD_START;
+    // pre-screening
+    //for( itIdx1 = filteredIndices.begin(); itIdx1 != filteredIndices.end(); itIdx1++ ) {
+    //    idx = *itIdx1;
+    for( idx = 0; idx < (uint) nMarkerCount; ++idx ) {
+        pMar1 = &pMargins[idx];
+        //for( itIdx2 = itIdx1 + 1; itIdx2 != filteredIndices.end(); itIdx2++ ) {
+        for( int idx2 = idx + 1; idx2 < nMarkerCount; ++idx2 ) {
+            pMar2 = &pMargins[ idx2 ];
+            //RECORD_START;
+            gt.getCaseControlContingencyTable( idx, idx2, *pMar1, *pMar2, ccct );
+
+            //RECORD_STOP;
+            //PRINT_LAPSE( *out, "");
+            //*out << endl;
+            
+            // less loop overhead
+            // no index calculations
+            // computes P(A | B)
+            //
+            //  CONTINGENCY TABLE ORGANIZATION
+            //     |__________B___________| MAR1
+            //  ___|__AA__|__ AB__|___BB__|
+            // | AA|  n0  |   n1  |   n2  |
+            //A| AB|  n3  |   n4  |   n5  |
+            // | BB|  n6  |   n7  |   n8  |
+            // MAR2|      |       |       |
+            //
+            tao = 0.0; interMeasure = 0.0;
+            pContinCa = &contin_ca.contin[0];
+            pContinCo = &contin_co.contin[0];
+            pPbc_ca = &pMar2->dPbc[1];
+            pPbc_co = &pMar2->dPbc[5];
+            pPca_ca = &pMar1->dPca[1];
+            pPca_co = &pMar1->dPca[5];
+            denom = &pMar2->margins.freq[1];
+
+            //*out << idx << "x" << *itIdx2<<endl;
+
+            for( int i = 0; i < 9; ++i ) {
+                switch( i ) {
+                    case 3:
+                    case 6:
+                        pPbc_ca = &pMar2->dPbc[1];
+                        pPbc_co = &pMar2->dPbc[5];
+                        pPca_ca++;
+                        pPca_co++;
+                        denom = &pMar2->margins.freq[1];
+                    default:
+                        dPab = (double)(*pContinCa + *pContinCo) / (double)*denom++;
+                        tmp2 = (dPab) * (*pPbc_ca++) * (*pPca_ca);
+                        tmp3 = (dPab) * (*pPbc_co++) * (*pPca_co);
+                        tao += tmp2 + tmp3;
+                        break;
+                } 
+                if( *pContinCa > 0 ) {
+                    tmp1 = (double) *pContinCa / nIndivids;
+                    interMeasure += tmp1 * log(tmp1);
+
+                    if( tmp2 > 0 ) {
+                        interMeasure += -tmp1 * log(tmp2);
+                    }
+                }
+                pContinCa++;
+
+                if( *pContinCo > 0 ) {
+                    tmp1 = (double) *pContinCo / nIndivids;
+                    interMeasure += tmp1 * log(tmp1);
+                    if( tmp3 > 0 ) {
+                        interMeasure += -tmp1 * log(tmp3);
+                    }
+                }
+                pContinCo++;
+            }
+
+            interMeasure = (interMeasure + log(tao)) * nIndivids * 2.0;
+            //*out << idx << "x" << *itIdx2 << "\t" << tao << "\t" << interMeasure << endl;
+
+
+            if( interMeasure > maxInteraction ) {
+                maxInteraction = interMeasure;
+            }
+
+            if( interMeasure < minInteraction ) {
+                minInteraction = interMeasure;
+            }
+
+            if( interMeasure > thresholdRecord ) {
+                passingThreshold.push_back( SNPInteractionPair( SNPPair( idx, idx2 ), interMeasure) );
+            }
+        }
+    }
+    RECORD_STOP;
+    PRINT_LAPSE( *out, "");
+    *out << endl;
+
+    *out << "Located " << passingThreshold.size() << " potential interactions" << endl;
+
+    *out << "Performing deeper analysis of SNPs" << endl;
+    vector< double > zval;
+    computeGTest(gt, pMargins, nIndivids, passingThreshold, zval );
+
+    vector< SNPInteractionPair >::const_iterator itPair;
+    vector< double >::const_iterator itZ;
+    idx = 0;
+    for( itPair = passingThreshold.begin(), itZ = zval.begin(); itPair != passingThreshold.end(); itPair++, itZ++ ) {
+        if( itPair->second > thresholdRecord ) {
+            *out << boost::format( "%7d\t%7d\t%7d\t%f\t%f\t%f\t%f" ) % (idx++) % itPair->first.first % itPair->first.second % 0.0 % 0.0 % itPair->second % *itZ;
+            *out << endl;
+        }
+    } 
 }
 
-void computeMargins( GenoTable & gt, int nIndivids, marginal_information *& pMargins ) {
-    int markerCount = gt.row_size();
+void computeGTest( GenoTable & gt, marginal_information * pMargins, uint nIndivids, vector< SNPInteractionPair > & passingThreshold, vector< double > & zval ) {
+
+    const int JOINT_GENOTYPE_SIZE = GT_COUNT * GT_COUNT;
+    const int MU_SIZE = JOINT_GENOTYPE_SIZE * GT_BUFFER_COUNT; // 3 (genotypes_a) * 3 (genotypes_b) * 2 (case_control)
+    double mu[ MU_SIZE ] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+    double mu0[ MU_SIZE ] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    double mutmp[ MU_SIZE ], mu0tmp[ MU_SIZE ];
+    double mu_ij[ JOINT_GENOTYPE_SIZE  ], mu_ik[ GT_BUFFER_SIZE ], mu_jk[ GT_BUFFER_SIZE ];
+    double muError, tmp1, tmp2, tmp3, tmp4;
+
+    double * pMu, * pMu0;
+    double * pMu_ca, *pMu_co;
+    double * pMu0_ca, *pMu0_co;
+    double * pMu_ik_ca, * pMu_ik_co;
+    double * pMu_jk_ca, * pMu_jk_co;
+
+    CaseControlContingencyTable ccct;
+
+    const contingency_table & contin_ca = *ccct.getCaseContingencyTable();
+    const contingency_table & contin_co = *ccct.getControlContingencyTable();
+
+    const uint * pContinCa, * pContinCo;
+    int idx, idx2;
+    double tao, interMeasure;
+    marginal_information * pMar1, * pMar2;
+    uint AlleleJointDistr[ 8 ];
+
+    // Exact Gtest
+    for( vector< SNPInteractionPair >::iterator itPair = passingThreshold.begin();
+         itPair != passingThreshold.end(); itPair++ ) {
+        idx = itPair->first.first;
+        idx2 = itPair->first.second;
+
+        pMar1 = &pMargins[idx];
+        pMar2 = &pMargins[idx2];
+        gt.getCaseControlContingencyTable( idx, idx2, *pMar1, *pMar2, ccct );
+
+        memcpy( mutmp, mu, MU_SIZE * sizeof(double) );
+        memcpy( mu0tmp, mu0, MU_SIZE * sizeof(double) );
+
+        muError = 0.0;
+        pMu = mutmp;
+        pMu0 = mu0tmp;
+        for( int i = 0; i < MU_SIZE; ++i ) {
+            muError += abs( *pMu - *pMu0 );
+        }
+
+        while( muError > 0.001 ) {
+            memcpy( mu0tmp, mutmp, MU_SIZE * sizeof(double));
+
+            pMu = mu_ij;
+            pMu_ca = mutmp;
+            pMu_co = &mutmp[JOINT_GENOTYPE_SIZE];
+            pContinCa = &contin_ca.contin[0];
+            pContinCo = &contin_co.contin[0];
+
+            memset( mu_ik, 0, GT_BUFFER_SIZE * sizeof(double) );
+            memset( mu_jk, 0, GT_BUFFER_SIZE * sizeof(double) );
+            
+            for( int i = 0; i < JOINT_GENOTYPE_SIZE; ++i ) {
+                switch( i ) {
+                    case 0:
+                        pMu_ik_ca = mu_ik;
+                        pMu_ik_co = &mu_ik[GT_COUNT];
+                        pMu_jk_ca = mu_jk;
+                        pMu_jk_co = &mu_jk[GT_COUNT];
+                        break;
+                    case 3:
+                    case 6:
+                        pMu_ik_ca++;
+                        pMu_ik_co++;
+                        pMu_jk_ca = mu_jk;
+                        pMu_jk_co = &mu_jk[GT_COUNT];
+                        break;
+                    default:
+                        break;
+                }
+                *pMu = (*pMu_ca + *pMu_co);
+                if( *pMu > 0 ) {
+                        *pMu_ca = *pMu_ca * ( *pContinCa + *pContinCo ) / *pMu;
+                        *pMu_co = *pMu_co * ( *pContinCa + *pContinCo ) / *pMu;
+                } else {
+                    *pMu_ca = 0;
+                    *pMu_co = 0;
+                }
+
+                *pMu_ik_ca += *pMu_ca;
+                *pMu_ik_co += *pMu_co;
+
+                *pMu_jk_ca++ += *pMu_ca++;
+                *pMu_jk_co++ += *pMu_co++;
+            }
+
+            
+            pMu_ca = mutmp;
+            pMu_co = &mutmp[JOINT_GENOTYPE_SIZE];
+            pMu0_ca = mu0tmp;
+            pMu0_co = &mu0tmp[JOINT_GENOTYPE_SIZE];
+            muError = 0.0;
+            for( int i = 0; i < JOINT_GENOTYPE_SIZE; ++i ) {
+                switch( i ) {
+                    case 0:
+                        pMu_ik_ca = mu_ik;
+                        pMu_ik_co = &mu_ik[GT_COUNT];
+
+                        if( *pMu_ik_ca > 0 )
+                            tmp1 = pMar1->cases.aa / *pMu_ik_ca++;
+                        else
+                            tmp1 = 0.0;
+
+                        if( *pMu_ik_co > 0 )
+                            tmp2 = pMar1->controls.aa / *pMu_ik_co++;
+                        else
+                            tmp2 = 0.0;
+
+                        pMu_jk_ca = mu_jk;
+                        pMu_jk_co = &mu_jk[ GT_COUNT ];
+                        break;
+                    case 3:
+                        if( *pMu_ik_ca > 0 )
+                            tmp1 = pMar1->cases.ab / *pMu_ik_ca++;
+                        else
+                            tmp1 = 0.0;
+
+                        if( *pMu_ik_co > 0 )
+                            tmp2 = pMar1->controls.ab / *pMu_ik_co++;
+                        else
+                            tmp2 = 0.0;
+                        break;
+                    case 6:
+                        if( *pMu_ik_ca > 0 )
+                            tmp1 = pMar1->cases.bb / *pMu_ik_ca++;
+                        else
+                            tmp1 = 0.0;
+
+                        if( *pMu_ik_co > 0 )
+                            tmp2 = pMar1->controls.bb / *pMu_ik_co++;
+                        else
+                            tmp2 = 0.0;
+                    default:
+                        break;
+                }
+
+                switch( i ) {
+                    case 0:
+                    case 3:
+                    case 6:
+                        if(  mu_jk[0] > 0 )
+                            tmp3 = pMar2->cases.aa / mu_jk[0];
+                        else
+                            tmp3 = 0.0;
+
+                        if(  mu_jk[GT_COUNT] > 0 )
+                            tmp4 = pMar2->controls.aa / mu_jk[GT_COUNT];
+                        else
+                            tmp4 = 0.0;
+                        break;
+                    case 1:
+                    case 4:
+                    case 7:
+                        if(  mu_jk[1] > 0 )
+                            tmp3 = pMar2->cases.ab / mu_jk[1];
+                        else
+                            tmp3 = 0.0;
+
+                        if(  mu_jk[GT_COUNT + 1] > 0 )
+                            tmp4 = pMar2->controls.ab / mu_jk[GT_COUNT + 1];
+                        else
+                            tmp4 = 0.0;
+                        break;
+                    default:
+                        if(  mu_jk[2] > 0 )
+                            tmp3 = pMar2->cases.bb / mu_jk[2];
+                        else
+                            tmp3 = 0.0;
+
+                        if(  mu_jk[GT_COUNT + 2] > 0 )
+                            tmp4 = pMar2->controls.bb / mu_jk[GT_COUNT + 2];
+                        else
+                            tmp4 = 0.0;
+
+                        break;
+                }
+                *pMu_ca = *pMu_ca * (tmp1) * tmp3;
+                *pMu_co = *pMu_co * (tmp2) * tmp4;
+
+                muError += abs( *pMu_ca++ - *pMu0_ca++ );
+                muError += abs( *pMu_co++ - *pMu0_co++ );
+            }
+        } // end while
+
+        tao = 0.0;
+        interMeasure = 0.0;
+        pContinCa = contin_ca.contin;
+        pContinCo = contin_co.contin;
+        pMu_ca = mutmp;
+        pMu_co = &mutmp[JOINT_GENOTYPE_SIZE];
+        for( int i = 0; i < JOINT_GENOTYPE_SIZE; ++i ) {
+            if( *pContinCa > 0 ) {
+                tmp1 = (double) *pContinCa / nIndivids;
+                interMeasure += tmp1 * log(tmp1);
+            } else 
+                tmp1 = 0.0;
+
+            if( *pMu_ca > 0 ) {
+                tmp2 = *pMu_ca / nIndivids;
+                interMeasure += -tmp1 * log(tmp2);
+                tao += tmp2;
+            }
+
+            if( *pContinCo > 0 ) {
+                tmp1 = (double) *pContinCo / nIndivids;
+                interMeasure += tmp1 * log(tmp1);
+            } else
+                tmp1 = 0.0;
+
+            if( *pMu_co > 0 ) {
+                tmp2 = *pMu_co / nIndivids;
+                interMeasure += -tmp1 * log(tmp2);
+                tao += tmp2;
+            }
+
+            pContinCa++; pContinCo++; pMu_ca++; pMu_co++;
+        }
+
+        interMeasure = (interMeasure + log(tao)) * nIndivids * 2.0;
+        itPair->second = interMeasure;
+
+        AlleleJointDistr[0] = (contin_ca.contin[0]<<2) + (contin_ca.contin[1]<<1) + (contin_ca.contin[3]<<1) + contin_ca.contin[4];
+        AlleleJointDistr[1] = (contin_ca.contin[2]<<2) + (contin_ca.contin[1]<<1) + (contin_ca.contin[5]<<1) + contin_ca.contin[4];
+        AlleleJointDistr[2] = (contin_ca.contin[6]<<2) + (contin_ca.contin[7]<<1) + (contin_ca.contin[3]<<1) + contin_ca.contin[4];
+        AlleleJointDistr[3] = (contin_ca.contin[8]<<2) + (contin_ca.contin[7]<<1) + (contin_ca.contin[5]<<1) + contin_ca.contin[4];
+
+        AlleleJointDistr[4] = (contin_co.contin[0] << 2) + (contin_co.contin[1] << 1) + (contin_co.contin[3]<< 1) + contin_co.contin[4];
+        AlleleJointDistr[5] = (contin_co.contin[2]<<2) + (contin_co.contin[1]<<1) + (contin_co.contin[5]<<1) + contin_co.contin[4];
+        AlleleJointDistr[6] = (contin_co.contin[6]<<2) + (contin_co.contin[7]<<1) + (contin_co.contin[3]<<1) + contin_co.contin[4];
+        AlleleJointDistr[7] = (contin_co.contin[8]<<2) + (contin_co.contin[7]<<1) + (contin_co.contin[5]<<1) + contin_co.contin[4]; 
+    
+        double or_aff = log( (double)(AlleleJointDistr[0]*AlleleJointDistr[3])/ (double)(AlleleJointDistr[1]*AlleleJointDistr[2]) );
+        double v_aff = 1/(double)AlleleJointDistr[0] + 1/(double)AlleleJointDistr[1] + 1/(double)AlleleJointDistr[2] + 1/(double)AlleleJointDistr[3];
+    
+        double or_unf = log( (double)(AlleleJointDistr[4]*AlleleJointDistr[7])/ (double)(AlleleJointDistr[5]*AlleleJointDistr[6]) );
+        double v_unf = 1/(double)AlleleJointDistr[4] + 1/(double)AlleleJointDistr[5] + 1/(double)AlleleJointDistr[6] + 1/(double)AlleleJointDistr[7];
+
+        zval.push_back( (or_aff - or_unf) / sqrt( v_aff + v_unf) );
+    }
+}
+
+void computeMargins( GenoTable & gt, int nIndivids, marginal_information *& pMargins, int & nMarkerCount ) {
+    nMarkerCount = gt.row_size();
 
     if( pMargins != NULL ) {
         delete [] pMargins;
     }
 
-    pMargins = new marginal_information[ markerCount ];
+    pMargins = new marginal_information[ nMarkerCount ];
 
     CaseControlGenotypeDistribution ccgd;
 
-    for ( int i = 0; i < markerCount; ++i ) {
+    for ( int i = 0; i < nMarkerCount; ++i ) {
         // assumes individuals have already been separated into cases and controls
         gt.getCaseControlGenotypeDistribution( i, ccgd, pMargins[i] );
     }

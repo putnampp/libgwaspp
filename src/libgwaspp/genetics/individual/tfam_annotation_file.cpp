@@ -45,9 +45,12 @@ bool TFamAnnotationFile::populateGeneticData( string &filename, GeneticData   *g
 
     set<string> cases, controls;
 
+    delim = ' ';
     string id;
     while( !iFile.eof() ) {
         getline( iFile, line );
+        if( line == "" )
+            continue;
         parser.str( line );
         parser.clear();
 
@@ -58,6 +61,10 @@ bool TFamAnnotationFile::populateGeneticData( string &filename, GeneticData   *g
         getline( parser, tok, delim);   // maternal id
         getline( parser, tok, delim);   // sex
         getline( parser, tok, delim);   // disease?
+
+        if( id == "-1" ) {
+            cout << line << endl;
+        }
 
         switch( tok[0] ) {
         case '1':
@@ -71,6 +78,8 @@ bool TFamAnnotationFile::populateGeneticData( string &filename, GeneticData   *g
         }
     }
 
+    cout << "Setting " << cases.size() << " cases." << endl;
+    cout << "Setting " << controls.size() << " controls." << endl;
     gd->setCaseControlSet( &cases, &controls);
 
     cases.clear();

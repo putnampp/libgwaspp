@@ -31,6 +31,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <cassert>
 
 #define MATHLIB_STANDALONE
 #include "Rmath.h"
@@ -44,6 +45,10 @@ namespace genetics {
 
 void printFrequencyDistribution( const frequency_table & ft, ostream & out, bool include_header = false );
 void printContingencyTable( const contingency_table & ct, ostream & out, bool include_header = false );
+
+ostream &operator<<(ostream &out, contingency_table & ct );
+ostream &operator<<(ostream &out, frequency_table &ft );
+ostream &operator<<(ostream &out, marginal_information &mi );
 
 uint ones16( register uint i );
 void init_bit_count( byte * bit_count );
@@ -92,7 +97,7 @@ inline int PopCount( uint v ) {
     n += PopCount( (a & b ) );
 #endif
 
-void computeMarginalInformation( const frequency_table & _cases, const frequency_table & _ctrls, double nIndivids, marginal_information & m);
+void computeMarginalInformation( const frequency_table & _cases, const frequency_table & _ctrls, uint nIndivids, marginal_information & m);
 
 }
 }

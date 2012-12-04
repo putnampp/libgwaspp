@@ -42,9 +42,10 @@
 
 #include "algorithms/computation_engine.h"
 
+#include "boost/format.hpp"
 
-#define MATHLIB_STANDALONE
-#include "Rmath.h"
+//#define MATHLIB_STANDALONE
+//#include "Rmath.h"
 
 namespace libgwaspp {
 namespace algorithms {
@@ -55,6 +56,8 @@ using namespace libgwaspp::genetics;
 //    frequency_table margins, cases, controls;
 //    double dMarginalEntropy, dMarginalEntropy_Y;
 //};
+typedef pair< uint, uint > SNPPair;
+typedef pair< SNPPair, double> SNPInteractionPair;
 
 const int GT_COUNT = 3;
 const int GT_BUFFER_COUNT = 2;
@@ -69,7 +72,9 @@ void ContingencyPerformance( void * input, void * output );
 void EpistasisDebug( void * input, void * output );
 void EpistasisPerformance( void * input, void * output );
 
-void computeMargins( GenoTable & gt, int nIndivids, marginal_information *& pMargins );
+void computeGTest( GenoTable & gt, marginal_information * pMargins, uint nIndivids, vector< SNPInteractionPair > & passingThreshold, vector< double > & zval );
+
+void computeMargins( GenoTable & gt, int nIndivids, marginal_information *& pMargins, int & nMarkerCount );
 void computeBoost( GeneticData *gd, ostream *out );
 
 double pairwise_epi_test( const contingency_table &_case, const contingency_table &_ctrl);

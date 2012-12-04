@@ -111,7 +111,7 @@ namespace genetics {
  */
 class CompressedGenotypeTable4 : public GenoTable {
 public:
-    CompressedGenotypeTable4( indexer *markers, indexer *individs ) : GenoTable( markers, individs ), gt_lookup(NULL), m_cases(NULL), m_controls(NULL) {
+    CompressedGenotypeTable4( indexer *markers, indexer *individs ) : GenoTable( markers, individs ), gt_lookup(NULL) {
         initialize();
     }
 
@@ -131,7 +131,7 @@ public:
     void getGenotypeDistribution( uint rIdx, GenotypeDistribution &dist );
     void getCaseControlGenotypeDistribution( uint rIdx, CaseControlSet &ccs, CaseControlGenotypeDistribution &ccgd );
     void getCaseControlGenotypeDistribution( uint rIdx, CaseControlGenotypeDistribution &ccgd );
-    void getCaseControlGenotypeDistribution( uint rIdx, CaseControlGenotypeDistribution &ccgd, marginal_information & m ) { assert(false); }
+    void getCaseControlGenotypeDistribution( uint rIdx, CaseControlGenotypeDistribution &ccgd, marginal_information & m );
 
     void selectMarkerPair( uint maIdx, uint mbIdx );
     void selectCaseControl( CaseControlSet &ccs );
@@ -158,7 +158,6 @@ protected:
 
     genotype_counts count_lookup[ 0x10000 ];
 
-    DataBlock *m_cases, *m_controls;
     joint_genotypes contingency_lookup[ 0x100000 ];
     byte skip_count[ 16 ];
 };
