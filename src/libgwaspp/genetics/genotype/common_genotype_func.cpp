@@ -129,11 +129,12 @@ uint ones16( register uint x ) {
     return ( x & 0x003f );
 }
 
-void init_bit_count( byte * _count ) {
+int init_bit_count( byte * _count ) {
     byte * tmp = _count;
     for( uint i = 0; i < 0x10000; ++i, ++tmp ) {
         *tmp = ones16( i );
     }
+    return 1;
 }
 
 void computeMarginalInformation( const frequency_table & _cases, const frequency_table & _ctrls, uint nIndivids, marginal_information & m) {

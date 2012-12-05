@@ -299,7 +299,7 @@ void computeBoost( GeneticData * gd, ostream * out ) {
     }
 
     vector< uint >::const_iterator itIdx1, itIdx2;
-    uint idx;
+    uint idx, idx2;
     CaseControlContingencyTable ccct;
 
     const contingency_table & contin_ca = *ccct.getCaseContingencyTable();
@@ -321,12 +321,13 @@ void computeBoost( GeneticData * gd, ostream * out ) {
     INIT_LAPSE_TIME;
     RECORD_START;
     // pre-screening
-    //for( itIdx1 = filteredIndices.begin(); itIdx1 != filteredIndices.end(); itIdx1++ ) {
-    //    idx = *itIdx1;
-    for( idx = 0; idx < (uint) nMarkerCount; ++idx ) {
+    for( itIdx1 = filteredIndices.begin(); itIdx1 != filteredIndices.end(); itIdx1++ ) {
+        idx = *itIdx1;
+    //for( idx = 0; idx < (uint) nMarkerCount; ++idx ) {
         pMar1 = &pMargins[idx];
-        //for( itIdx2 = itIdx1 + 1; itIdx2 != filteredIndices.end(); itIdx2++ ) {
-        for( int idx2 = idx + 1; idx2 < nMarkerCount; ++idx2 ) {
+        for( itIdx2 = itIdx1 + 1; itIdx2 != filteredIndices.end(); itIdx2++ ) {
+        //for( int idx2 = idx + 1; idx2 < nMarkerCount; ++idx2 ) {
+            idx2 = *itIdx2;
             pMar2 = &pMargins[ idx2 ];
             //RECORD_START;
             gt.getCaseControlContingencyTable( idx, idx2, *pMar1, *pMar2, ccct );
@@ -358,22 +359,19 @@ void computeBoost( GeneticData * gd, ostream * out ) {
 
             //*out << idx << "x" << *itIdx2<<endl;
 
-            for( int i = 0; i < 9; ++i ) {
-                switch( i ) {
-                    case 3:
-                    case 6:
-                        pPbc_ca = &pMar2->dPbc[1];
-                        pPbc_co = &pMar2->dPbc[5];
-                        pPca_ca++;
-                        pPca_co++;
-                        denom = &pMar2->margins.freq[1];
-                    default:
-                        dPab = (double)(*pContinCa + *pContinCo) / (double)*denom++;
-                        tmp2 = (dPab) * (*pPbc_ca++) * (*pPca_ca);
-                        tmp3 = (dPab) * (*pPbc_co++) * (*pPca_co);
-                        tao += tmp2 + tmp3;
-                        break;
-                } 
+            for( int i = 0, j = 3; i < 9; ++i ) {
+                if( ! j-- ) {
+                    j = 2;
+                    pPbc_ca = &pMar2->dPbc[1];
+                    pPbc_co = &pMar2->dPbc[5];
+                    pPca_ca++;
+                    pPca_co++;
+                    denom = &pMar2->margins.freq[1];
+                }
+                dPab = (double)(*pContinCa + *pContinCo) / (double)*denom++;
+                tmp2 = (dPab) * (*pPbc_ca++) * (*pPca_ca);
+                tmp3 = (dPab) * (*pPbc_co++) * (*pPca_co);
+                tao += tmp2 + tmp3;
                 if( *pContinCa > 0 ) {
                     tmp1 = (double) *pContinCa / nIndivids;
                     interMeasure += tmp1 * log(tmp1);
@@ -491,23 +489,17 @@ void computeGTest( GenoTable & gt, marginal_information * pMargins, uint nIndivi
             memset( mu_ik, 0, GT_BUFFER_SIZE * sizeof(double) );
             memset( mu_jk, 0, GT_BUFFER_SIZE * sizeof(double) );
             
-            for( int i = 0; i < JOINT_GENOTYPE_SIZE; ++i ) {
-                switch( i ) {
-                    case 0:
-                        pMu_ik_ca = mu_ik;
-                        pMu_ik_co = &mu_ik[GT_COUNT];
-                        pMu_jk_ca = mu_jk;
-                        pMu_jk_co = &mu_jk[GT_COUNT];
-                        break;
-                    case 3:
-                    case 6:
+            pMu_ik_ca = mu_ik;
+            pMu_ik_co = &mu_ik[GT_COUNT];
+            pMu_jk_ca = mu_jk;
+            pMu_jk_co = &mu_jk[GT_COUNT];
+            for( int i = 0, j = 3; i < JOINT_GENOTYPE_SIZE; ++i ) {
+                if( ! j-- ) {
+                    j = 2;
                         pMu_ik_ca++;
                         pMu_ik_co++;
                         pMu_jk_ca = mu_jk;
                         pMu_jk_co = &mu_jk[GT_COUNT];
-                        break;
-                    default:
-                        break;
                 }
                 *pMu = (*pMu_ca + *pMu_co);
                 if( *pMu > 0 ) {
@@ -531,90 +523,36 @@ void computeGTest( GenoTable & gt, marginal_information * pMargins, uint nIndivi
             pMu0_ca = mu0tmp;
             pMu0_co = &mu0tmp[JOINT_GENOTYPE_SIZE];
             muError = 0.0;
-            for( int i = 0; i < JOINT_GENOTYPE_SIZE; ++i ) {
-                switch( i ) {
-                    case 0:
-                        pMu_ik_ca = mu_ik;
-                        pMu_ik_co = &mu_ik[GT_COUNT];
+            //pMu_ik_ca = mu_ik;
+            //pMu_ik_co = &mu_ik[GT_COUNT];
+            //pMu_jk_ca = mu_jk;
+            //pMu_jk_co = &mu_jk[ GT_COUNT ];
+            for( int i = 0, j = 0, k = 1, l = 1; i < JOINT_GENOTYPE_SIZE; ++i, ++l ) {
+                if ( ! j-- ) {
+                    j = 2;
+                    if( mu_ik[ k - 1 ] > 0 )
+                        tmp1 = pMar1->cases.freq[k] / mu_ik[ k - 1 ];
+                    else
+                        tmp1 = 0.0;
 
-                        if( *pMu_ik_ca > 0 )
-                            tmp1 = pMar1->cases.aa / *pMu_ik_ca++;
-                        else
-                            tmp1 = 0.0;
-
-                        if( *pMu_ik_co > 0 )
-                            tmp2 = pMar1->controls.aa / *pMu_ik_co++;
-                        else
-                            tmp2 = 0.0;
-
-                        pMu_jk_ca = mu_jk;
-                        pMu_jk_co = &mu_jk[ GT_COUNT ];
-                        break;
-                    case 3:
-                        if( *pMu_ik_ca > 0 )
-                            tmp1 = pMar1->cases.ab / *pMu_ik_ca++;
-                        else
-                            tmp1 = 0.0;
-
-                        if( *pMu_ik_co > 0 )
-                            tmp2 = pMar1->controls.ab / *pMu_ik_co++;
-                        else
-                            tmp2 = 0.0;
-                        break;
-                    case 6:
-                        if( *pMu_ik_ca > 0 )
-                            tmp1 = pMar1->cases.bb / *pMu_ik_ca++;
-                        else
-                            tmp1 = 0.0;
-
-                        if( *pMu_ik_co > 0 )
-                            tmp2 = pMar1->controls.bb / *pMu_ik_co++;
-                        else
-                            tmp2 = 0.0;
-                    default:
-                        break;
+                    if( mu_ik[ GT_COUNT + (k - 1)] > 0 )
+                        tmp2 = pMar1->controls.freq[k] / mu_ik[ GT_COUNT + (k - 1) ];
+                    else
+                        tmp2 = 0.0;
+                    ++k;
+                    l = 1;
                 }
 
-                switch( i ) {
-                    case 0:
-                    case 3:
-                    case 6:
-                        if(  mu_jk[0] > 0 )
-                            tmp3 = pMar2->cases.aa / mu_jk[0];
-                        else
-                            tmp3 = 0.0;
+                if(  mu_jk[l-1] > 0 )
+                    tmp3 = pMar2->cases.freq[l] / mu_jk[l - 1];
+                else
+                    tmp3 = 0.0;
 
-                        if(  mu_jk[GT_COUNT] > 0 )
-                            tmp4 = pMar2->controls.aa / mu_jk[GT_COUNT];
-                        else
-                            tmp4 = 0.0;
-                        break;
-                    case 1:
-                    case 4:
-                    case 7:
-                        if(  mu_jk[1] > 0 )
-                            tmp3 = pMar2->cases.ab / mu_jk[1];
-                        else
-                            tmp3 = 0.0;
+                if(  mu_jk[GT_COUNT + l - 1] > 0 )
+                    tmp4 = pMar2->controls.freq[l] / mu_jk[GT_COUNT + (l - 1)];
+                else
+                    tmp4 = 0.0;
 
-                        if(  mu_jk[GT_COUNT + 1] > 0 )
-                            tmp4 = pMar2->controls.ab / mu_jk[GT_COUNT + 1];
-                        else
-                            tmp4 = 0.0;
-                        break;
-                    default:
-                        if(  mu_jk[2] > 0 )
-                            tmp3 = pMar2->cases.bb / mu_jk[2];
-                        else
-                            tmp3 = 0.0;
-
-                        if(  mu_jk[GT_COUNT + 2] > 0 )
-                            tmp4 = pMar2->controls.bb / mu_jk[GT_COUNT + 2];
-                        else
-                            tmp4 = 0.0;
-
-                        break;
-                }
                 *pMu_ca = *pMu_ca * (tmp1) * tmp3;
                 *pMu_co = *pMu_co * (tmp2) * tmp4;
 

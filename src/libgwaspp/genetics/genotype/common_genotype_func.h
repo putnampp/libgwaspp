@@ -51,20 +51,15 @@ ostream &operator<<(ostream &out, frequency_table &ft );
 ostream &operator<<(ostream &out, marginal_information &mi );
 
 uint ones16( register uint i );
-void init_bit_count( byte * bit_count );
+int init_bit_count( byte * bit_count );
 
 inline int PopCount( ushort v ) {
     static byte bit_count16[ 0x10000 ];
-    static int init = 0;
-    switch( init ) {
-    case 0:
-        init_bit_count( bit_count16 );
-        ++init;
-    default:
-        return bit_count16[ v ];
-    }
+    static int init = init_bit_count( bit_count16 );
+    return bit_count16[ v ];
 }
 
+/*
 inline int PopCount( ulong v ) {
     static int count;
     count =  PopCount( (ushort) v );
@@ -83,6 +78,15 @@ inline int PopCount( uint v ) {
     v >>= 16;
     count += PopCount( (ushort) v );
     return count;
+}
+*/
+
+inline int PopCount( register uint v ) {
+    return PopCount( (ushort) v ) + PopCount( (ushort) (v >> 16) );
+}
+
+inline int PopCount( register ulong v ) {
+    return PopCount( (ushort) v ) + PopCount( (ushort) (v >> 16) ) + PopCount( (ushort) (v >> 32) ) + PopCount( (ushort) (v >> 48) );
 }
 
 #ifndef IncrementFrequencyValueStream
