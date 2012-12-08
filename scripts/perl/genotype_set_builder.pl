@@ -133,16 +133,16 @@ sub build_genotype_for_marker_cc {
     my $res = "";
 
     for ( my $i = 0; $i < $icount; $i++ ) {
-        my $v = int( rand( 4 ) );
+        my $v = int( rand( 100 ) );
 
         if( $cc_list[ $i ] ) {
-            if( $v == 0 ) {
+            if( $v < 0 ) {
                 $case_xx++;
                 $res = $res."\t0\t0";
-            } elsif ( $v == 1 ) {
+            } elsif ( $v < 34 ) {
                 $case_aa++;
                 $res = $res."\tA\tA";
-            } elsif ( $v == 2 ) {
+            } elsif ( $v < 67 ) {
                 $case_ab++;
                 $res = $res."\tA\tC";
             } else {
@@ -150,13 +150,13 @@ sub build_genotype_for_marker_cc {
                 $res = $res."\tC\tC";
             }
         } else {
-            if( $v == 0 ) {
+            if( $v < 0) {
                 $ctrl_xx++;
                 $res = $res."\t0\t0";
-            } elsif ( $v == 1 ) {
+            } elsif ( $v < 34 ) {
                 $ctrl_aa++;
                 $res = $res."\tA\tA";
-            } elsif ( $v == 2 ) {
+            } elsif ( $v < 67 ) {
                 $ctrl_ab++;
                 $res = $res."\tA\tC";
             } else {

@@ -104,7 +104,6 @@ bool TpedGenotypeFile::parseNextMarkerRecord( istream *iFile, GeneticData *gd, c
     bool success = true;
 
     getline( *iFile, line );
-
     parser.str( line );
     parser.clear();
 

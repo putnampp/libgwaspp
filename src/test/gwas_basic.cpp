@@ -141,6 +141,7 @@ int main( int argc, char **argv ) {
 
     auto_ptr< set< string > > marker_ids( new set<string>() ), individual_ids(new set<string>());
 
+    char delim = ' ';
     if( g_ft == TPLINK ) {
         ipf = auto_ptr<GeneticDataFile>(new TfamPhenotypeFile());
         igf = auto_ptr<GeneticDataFile>(new TpedGenotypeFile());
@@ -172,7 +173,7 @@ int main( int argc, char **argv ) {
     INIT_LAPSE_TIME;
     RECORD_START;
 
-    ipf->populateGeneticData( pheno_file, &*gd );
+    ipf->populateGeneticData( pheno_file, &*gd, delim);
 
     RECORD_STOP;
     PRINT_LAPSE(cout, "Time to populate Phenotype Data: " );
@@ -182,11 +183,11 @@ int main( int argc, char **argv ) {
     cout << "Found " << gd->getPhenotypeCount() << " phenotyped traits." << endl;
 
     cout << "Starting to populate genotype data" << endl;
-    igf->populateGeneticData( geno_file, &*gd );
+    igf->populateGeneticData( geno_file, &*gd, delim);
 
     cout << "Genotyped Individual Count: " << gd->getGenotypedIndividualsCount() << endl;
     cout << "Found " << gd->getMarkerCount() << " markers" << endl;
-    iaf->populateGeneticData( annot_file, &*gd );
+    iaf->populateGeneticData( annot_file, &*gd, delim );
 
     BasicInput inp_all( gd.get(), marker_ids.get(), individual_ids.get() );
 
