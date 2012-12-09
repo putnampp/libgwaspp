@@ -107,6 +107,13 @@ inline void DecodeBitStreams2BitStream( PWORD & _aa, PWORD & _ab, PWORD & _bb ) 
     _ab ^= _bb;
 }
 
+inline void DecodeBitStreams2BitStream( PWORD & _aa, PWORD & _ab, PWORD & _bb, PWORD & _xx ) {
+    _xx = ~( _aa | _ab );
+    _bb = (_aa & _ab);
+    _aa ^= _bb;
+    _ab ^= _bb;
+}
+
 
 /**
  * Class: CompressedGenotypeTable5

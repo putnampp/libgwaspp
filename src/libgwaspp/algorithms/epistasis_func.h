@@ -77,8 +77,8 @@ void computeGTest( GenoTable & gt, marginal_information * pMargins, uint nIndivi
 void computeMargins( GenoTable & gt, int nIndivids, marginal_information *& pMargins, int & nMarkerCount );
 void computeBoost( GeneticData *gd, ostream *out );
 
-double pairwise_epi_test( const contingency_table &_case, const contingency_table &_ctrl);
-double pairwise_epi_test( const contingency_table &_case, const contingency_table &_ctrl, const marginal_information & m1, const marginal_information & m2 );
+double pairwise_epi_test( const CONTIN_TABLE_T &_case, const CONTIN_TABLE_T &_ctrl);
+double pairwise_epi_test( const CONTIN_TABLE_T &_case, const CONTIN_TABLE_T &_ctrl, const marginal_information & m1, const marginal_information & m2 );
 
 }
 }

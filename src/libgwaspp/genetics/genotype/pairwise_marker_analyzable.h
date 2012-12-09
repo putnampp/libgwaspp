@@ -51,13 +51,13 @@ class ContingencyTable {
         void setMarkerAIndex( uint ma ) { ma_rIdx = ma; }
         void setMarkerBIndex( uint mb ) { mb_rIdx = mb; }
 
-        const contingency_table * getContingencyTable() { return &cont; }
+        const CONTIN_TABLE_T * getContingencyTable() { return &cont; }
 
         const header_table *getMarkerAHeader() { return &ma_header; }
         const header_table *getMarkerBHeader() { return &mb_header; }
 
 
-        void setContingency( const contingency_table & ct ) {
+        void setContingency( const CONTIN_TABLE_T & ct ) {
             CopyContingencyTable( cont, ct );
         }
 
@@ -96,7 +96,7 @@ class ContingencyTable {
 
     protected:
         uint ma_rIdx, mb_rIdx;
-        contingency_table cont;
+        CONTIN_TABLE_T cont;
         header_table ma_header, mb_header;
 };
 
@@ -115,19 +115,19 @@ class CaseControlContingencyTable {
         const header_table *getMarkerAHeader() { return &ma_header; }
         const header_table *getMarkerBHeader() { return &mb_header; }
 
-        const contingency_table * getCaseContingencyTable() { return &case_contin; }
-        const contingency_table * getControlContingencyTable() { return &control_contin; }
+        const CONTIN_TABLE_T * getCaseContingencyTable() { return &case_contin; }
+        const CONTIN_TABLE_T * getControlContingencyTable() { return &control_contin; }
 
 
-        void setCaseContingency( const contingency_table & ct ) {
+        void setCaseContingency( const CONTIN_TABLE_T & ct ) {
             CopyContingencyTable( case_contin, ct );
         }
 
-        void setControlContingency( const contingency_table & ct ) {
+        void setControlContingency( const CONTIN_TABLE_T & ct ) {
             CopyContingencyTable( control_contin, ct );
         }
 
-        void updateContingencyTables( const contingency_table &cs, const contingency_table &ct ) {
+        void updateContingencyTables( const CONTIN_TABLE_T &cs, const CONTIN_TABLE_T &ct ) {
           CopyContingencyTable( case_contin, cs );
           CopyContingencyTable( control_contin, ct );
         }
@@ -164,7 +164,7 @@ class CaseControlContingencyTable {
         virtual ~CaseControlContingencyTable() {}
     protected:
         uint ma_rIdx, mb_rIdx;
-        contingency_table case_contin, control_contin;
+        CONTIN_TABLE_T case_contin, control_contin;
         header_table ma_header, mb_header;
 };
 
@@ -174,7 +174,7 @@ class PairwiseMarkerAnalyzable : public virtual CaseControlSelectable {
 
         virtual void selectMarkerPair( uint rIdx1, uint rIdx2 ) = 0;
 
-        contingency_table *getContingencyTable() { return &_contingency; }
+        CONTIN_TABLE_T *getContingencyTable() { return &_contingency; }
         header_table *getMarkerAHeader() { return &ma_header; }
         header_table *getMarkerBHeader() { return &mb_header; }
 
@@ -198,7 +198,7 @@ class PairwiseMarkerAnalyzable : public virtual CaseControlSelectable {
 
         uint maIdx, mbIdx;
 
-        contingency_table _contingency;
+        CONTIN_TABLE_T _contingency;
         header_table ma_header, mb_header;
 };
 

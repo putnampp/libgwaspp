@@ -361,7 +361,7 @@ void CompressedGenotypeTable2::selectMarkerPair( uint rIdx1, uint rIdx2 ) {
             val = contingency_lookup[ base_offset | (( a_val & 0x00FF ) << 8 ) | ( b_val & 0x00FF )];
 
             ContingencyAddJointGenotype( _contingency, val );
-            _contingency.n9 -= tail_end;
+            _contingency.xx_xx -= tail_end;
         }
     }
 }

@@ -31,36 +31,57 @@
 namespace libgwaspp {
 namespace genetics {
 
-void printContingencyTable( const contingency_table & ct, ostream & out, bool include_header ) {
+const char * g_Aheader[GENOTYPE_COUNT] = {"AA", "Aa", "aa", "xx" };
+const char * g_Bheader[GENOTYPE_COUNT] = {"BB", "Bb", "bb", "xx" };
+
+void printContingencyTable( const CONTIN_TABLE_T & ct, ostream & out, bool include_header ) {
     if( include_header ) {
-        out << "\tAA\tAa\taa\nBB\t";
+        for( int j = 0; j < CONTIN_COLUMN_COUNT; ++j ) {
+            out << "\t" << g_Bheader[ j ];
+        }
+        out << endl;
     }
-    out << dec << ct.n0 << "\t" << ct.n1 << "\t" << ct.n2 << endl;
-    if( include_header )
-        out << "Bb\t";
-    out << ct.n3 << "\t" << ct.n4 << "\t" << ct.n5 << endl;
-    if( include_header )
-        out << "bb\t";
-    out << ct.n6 << "\t" << ct.n7 << "\t" << ct.n8 << endl;
+
+    out << dec;
+    for( int i = 0; i < CONTIN_ROW_COUNT; ++i ) {
+        if( include_header )
+            out << g_Aheader[ i ];
+        for( int j = 0; j < CONTIN_COLUMN_COUNT; ++j ) {
+            out << "\t" << ct.contin[ i * CONTIN_COLUMN_COUNT + j];
+        }
+
+        out << endl;
+    }
 }
 
 void printFrequencyDistribution( const frequency_table & ft, ostream & out, bool include_header ) {
     if( include_header ) {
-        out << "AA\tAa\taa\n";
+        for( int i = 0; i < GENOTYPE_COUNT; ++i ) {
+            if( i )
+                out << "\t";
+            out << g_Aheader[i];
+        }
+        out << endl;
     }
-    out << dec << ft.aa << "\t" << ft.ab << "\t" << ft.bb << endl;
+    out << dec;
+    for( int i = 0; i < GENOTYPE_COUNT; ++i ) {
+        if( i )
+            out << "\t";
+        out << ft.freq[i];
+    }
+    out << endl;
 }
 
 ostream &operator<<(ostream &out, frequency_table & ft ) {
     out << dec;
-    for( int i = 1; i < 4; ++i) {
+    for( int i = 0; i < GENOTYPE_COUNT; ++i) {
         out << "\t" << ft.freq[i];
     }
     return out;
 }
 
-ostream &operator<<(ostream &out, contingency_table & ct ) {
-    out << dec << "\tBB\tBb\tbb" << endl;
+ostream &operator<<(ostream &out, CONTIN_TABLE_T & ct ) {
+    /*out << dec << "\tBB\tBb\tbb" << endl;
     for( int i = 0; i < 9; ++i) {
         switch( i ) {
             case 0:
@@ -86,27 +107,39 @@ ostream &operator<<(ostream &out, contingency_table & ct ) {
             default:
                 break;
         }
-    }
+    }*/
+    printContingencyTable( ct, out, true );
     return out;
 }
 
 ostream &operator<<(ostream &out, marginal_information &mi ) {
-    out << dec << "\tXX\tAA\tAB\tBB\t\tPbc_XX\tPbc_AA\tPbc_AB\tPbc_BB\t\tPca_XX\tPca_AA\tPca_AB\tPca_BB" << endl;
+    //out << dec << "\tXX\tAA\tAB\tBB\t\tPbc_XX\tPbc_AA\tPbc_AB\tPbc_BB\t\tPca_XX\tPca_AA\tPca_AB\tPca_BB" << endl;
+    //
+    for( int i = 0; i < GENOTYPE_COUNT; ++i ) {
+        out << "\t" << g_Aheader[i];
+    }
+    for( int i = 0; i < GENOTYPE_COUNT; ++i ) {
+        out << "\tPbc_" << g_Aheader[i];
+    }
+    for( int i = 0; i < GENOTYPE_COUNT; ++i ) {
+        out << "\tPca_" << g_Aheader[i];
+    }
+    out << endl;
     out << "Cases" << mi.cases;
 
-    for( int i = 1; i < 4; ++i) {
+    for( int i = 0; i < GENOTYPE_COUNT; ++i) {
         out << "\t" << mi.dPbc[i];
     }
-    for( int i = 1; i < 4; ++i) {
+    for( int i = 0; i < GENOTYPE_COUNT; ++i) {
         out << "\t" << mi.dPca[i];
     }
     out << endl;
 
     out << "Controls" << mi.controls;
-    for( int i = 5; i < 8; ++i) {
+    for( int i = GENOTYPE_COUNT; i < 2 * GENOTYPE_COUNT; ++i) {
         out << "\t" << mi.dPbc[i];
     }
-    for( int i = 5; i < 8; ++i) {
+    for( int i = GENOTYPE_COUNT; i < 2 * GENOTYPE_COUNT; ++i) {
         out << "\t" << mi.dPca[i];
     }
     out << endl;
@@ -154,12 +187,12 @@ void computeMarginalInformation( const frequency_table & _cases, const frequency
     uint * _co = &m.controls.freq[0];
 
     double * pbc_ca = &m.dPbc[0];
-    double * pbc_co = &m.dPbc[4];
+    double * pbc_co = &m.dPbc[GENOTYPE_COUNT];
     double * pca_ca = &m.dPca[0];
-    double * pca_co = &m.dPca[4];
+    double * pca_co = &m.dPca[GENOTYPE_COUNT];
 
     double tmp;
-    for( int i = 0; i < 4; ++i ) {
+    for( int i = 0; i < GENOTYPE_COUNT; ++i ) {
         *mar = *_ca + *_co;
         if( *mar > 0 ) {
             tmp = (double) *mar / (double) nIndivids;

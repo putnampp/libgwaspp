@@ -643,10 +643,9 @@ void CompressedGenotypeTable4::selectCaseControl( CaseControlSet & ccs ) {
 }*/
 
 void CompressedGenotypeTable4::getGenotypeDistribution( uint rIdx, GenotypeDistribution &dist ) {
-    ulong row_offset = rIdx * blocks_per_row + 1;
-    PWORD *tmp_data = reinterpret_cast< PWORD * >(data + row_offset);
-    PWORD *tmp_data_ab = reinterpret_cast< PWORD * >(data + row_offset + genotype_block_offset_ab);
-    PWORD *tmp_data_bb = reinterpret_cast< PWORD * >(data + row_offset + genotype_block_offset_bb);
+    PWORD *tmp_data = reinterpret_cast< PWORD * >(data + rIdx * blocks_per_row + 1);
+    PWORD *tmp_data_ab = reinterpret_cast< PWORD * >(data +  rIdx * blocks_per_row + 1+ genotype_block_offset_ab);
+    PWORD *tmp_data_bb = reinterpret_cast< PWORD * >(data +  rIdx * blocks_per_row + 1+ genotype_block_offset_bb);
     PWORD _aa, _ab, _bb;
 
     frequency_table joint_gt;
@@ -668,10 +667,9 @@ void CompressedGenotypeTable4::getGenotypeDistribution( uint rIdx, GenotypeDistr
 }
 
 void CompressedGenotypeTable4::getCaseControlGenotypeDistribution( uint rIdx, CaseControlSet &ccs, CaseControlGenotypeDistribution &ccgd ) {
-    ulong row_offset = rIdx * blocks_per_row + 1;
-    PWORD *tmp_data = reinterpret_cast< PWORD * >(data + row_offset);
-    PWORD *tmp_data_ab = reinterpret_cast< PWORD * >(data + row_offset + genotype_block_offset_ab);
-    PWORD *tmp_data_bb = reinterpret_cast< PWORD * >(data + row_offset + genotype_block_offset_bb);
+    PWORD *tmp_data = reinterpret_cast< PWORD * >(data + rIdx * blocks_per_row + 1);
+    PWORD *tmp_data_ab = reinterpret_cast< PWORD * >(data +  rIdx * blocks_per_row + 1+ genotype_block_offset_ab);
+    PWORD *tmp_data_bb = reinterpret_cast< PWORD * >(data +  rIdx * blocks_per_row + 1+ genotype_block_offset_bb);
 
     PWORD _aa, _bb, _ab;
     PWORD mask;
@@ -703,14 +701,9 @@ void CompressedGenotypeTable4::getCaseControlGenotypeDistribution( uint rIdx, Ca
 }
 
 void CompressedGenotypeTable4::getCaseControlGenotypeDistribution( uint rIdx, CaseControlGenotypeDistribution &ccgd ) {
-    ulong offset = rIdx * nCaseControlBlockCount;
-    PWORD *tmp_case_data = reinterpret_cast< PWORD * >( m_cases_controls + offset );
-    PWORD *tmp_case_data_ab = reinterpret_cast< PWORD * >( m_cases_controls + offset + nCaseBlockCount);
-    PWORD *tmp_case_data_bb = reinterpret_cast< PWORD * >( m_cases_controls + offset + (nCaseBlockCount << 1));
-    offset += nControlBlockOffset;
-    PWORD *tmp_ctrl_data = reinterpret_cast< PWORD * >( m_cases_controls + offset );
-    PWORD *tmp_ctrl_data_ab = reinterpret_cast< PWORD * >( m_cases_controls + offset + nControlBlockCount);
-    PWORD *tmp_ctrl_data_bb = reinterpret_cast< PWORD * >( m_cases_controls + offset + (nControlBlockCount<<1));
+    PWORD *tmp_data = reinterpret_cast< PWORD * >( m_cases_controls +  rIdx * nCaseControlBlockCount);
+    PWORD *tmp_data_ab = reinterpret_cast< PWORD * >( m_cases_controls +  rIdx * nCaseControlBlockCount+ nCaseBlockCount);
+    PWORD *tmp_data_bb = reinterpret_cast< PWORD * >( m_cases_controls +  rIdx * nCaseControlBlockCount+ (nCaseBlockCount << 1));
 
     PWORD _aa, _ab, _bb;
 
@@ -719,27 +712,33 @@ void CompressedGenotypeTable4::getCaseControlGenotypeDistribution( uint rIdx, Ca
     ResetFrequencyTable( ctrl_gt );
 
     for( uint i = 0; i < nCaseBlockCount; i += BLOCKS_PER_PWORD ) {
-        _aa = *tmp_case_data++;
-        _ab = *tmp_case_data_ab++;
-        _bb = *tmp_case_data_bb++;
+        _aa = *tmp_data++;
+        _ab = *tmp_data_ab++;
+        _bb = *tmp_data_bb++;
         IncrementFrequencyValueStream(case_gt, _aa, _ab, _bb );
     }
+    case_gt.xx = nCaseCount - case_gt.aa - case_gt.ab - case_gt.bb;
+    
+    tmp_data = reinterpret_cast< PWORD * >( m_cases_controls +  rIdx * nCaseControlBlockCount );
+    tmp_data_ab = reinterpret_cast< PWORD * >( m_cases_controls +  rIdx * nCaseControlBlockCount+ nControlBlockCount);
+    tmp_data_bb = reinterpret_cast< PWORD * >( m_cases_controls +  rIdx * nCaseControlBlockCount+ (nControlBlockCount << 1));
 
     for( uint i = 0; i < nControlBlockCount; i += BLOCKS_PER_PWORD) {
-        _aa = *tmp_ctrl_data++;
-        _ab = *tmp_ctrl_data_ab++;
-        _bb = *tmp_ctrl_data_bb++;
+        _aa = *tmp_data++;
+        _ab = *tmp_data_ab++;
+        _bb = *tmp_data_bb++;
         IncrementFrequencyValueStream( ctrl_gt, _aa, _ab, _bb);
     }
+
+    ctrl_gt.xx = nControlCount - ctrl_gt.aa - ctrl_gt.ab - ctrl_gt.bb;
 
     ccgd.setCaseDistribution(case_gt);
     ccgd.setControlDistribution(ctrl_gt);
 }
 void CompressedGenotypeTable4::getCaseControlGenotypeDistribution( uint rIdx, CaseControlGenotypeDistribution &ccgd, marginal_information & m ) {
-    ulong offset = rIdx * nCaseControlBlockCount;
-    PWORD *tmp_data = reinterpret_cast< PWORD * >( m_cases_controls + offset );
-    PWORD *tmp_data_ab = reinterpret_cast< PWORD * >( m_cases_controls + offset + nCaseBlockCount);
-    PWORD *tmp_data_bb = reinterpret_cast< PWORD * >( m_cases_controls + offset + (nCaseBlockCount<<1));
+    PWORD *tmp_data = reinterpret_cast< PWORD * >( m_cases_controls +  rIdx * nCaseControlBlockCount);
+    PWORD *tmp_data_ab = reinterpret_cast< PWORD * >( m_cases_controls + rIdx * nCaseControlBlockCount + nCaseBlockCount);
+    PWORD *tmp_data_bb = reinterpret_cast< PWORD * >( m_cases_controls + rIdx * nCaseControlBlockCount + (nCaseBlockCount<<1));
 
     PWORD _aa, _ab, _bb;
 
@@ -752,24 +751,19 @@ void CompressedGenotypeTable4::getCaseControlGenotypeDistribution( uint rIdx, Ca
         _ab = *tmp_data_ab++;
         _bb = *tmp_data_bb++;
 
-    //    cout << hex << _aa << "\t" << _ab << "\t" << _bb << endl;
-        
         case_gt.bb += PopCount( _bb );
         case_gt.ab += PopCount( _ab );
         case_gt.aa += PopCount( _aa );
     }
 
-    offset += nControlBlockOffset;
-    tmp_data = reinterpret_cast< PWORD * >( m_cases_controls + offset );
-    tmp_data_ab = reinterpret_cast< PWORD * >( m_cases_controls + offset + nControlBlockCount);
-    tmp_data_bb = reinterpret_cast< PWORD * >( m_cases_controls + offset + (nControlBlockCount<<1));
+    tmp_data = reinterpret_cast< PWORD * >( m_cases_controls +  rIdx * nCaseControlBlockCount+ nControlBlockOffset);
+    tmp_data_ab = reinterpret_cast< PWORD * >( m_cases_controls + rIdx * nCaseControlBlockCount + nControlBlockCount+ nControlBlockOffset);
+    tmp_data_bb = reinterpret_cast< PWORD * >( m_cases_controls + rIdx * nCaseControlBlockCount + (nControlBlockCount<<1)+ nControlBlockOffset);
 
     for( uint i = 0; i < nControlBlockCount; i += BLOCKS_PER_PWORD ) {
         _aa = *tmp_data++;
         _ab = *tmp_data_ab++;
         _bb = *tmp_data_bb++;
-
-      //  cout << hex << _aa << "\t" << _ab << "\t" << _bb << endl;
 
         ctrl_gt.bb += PopCount( _bb );
         ctrl_gt.ab += PopCount( _ab );
@@ -779,8 +773,6 @@ void CompressedGenotypeTable4::getCaseControlGenotypeDistribution( uint rIdx, Ca
     case_gt.xx = nCaseCount - case_gt.aa - case_gt.ab - case_gt.bb;
     ctrl_gt.xx = nControlCount - ctrl_gt.aa - ctrl_gt.ab - ctrl_gt.bb;
 
-    //cout << dec << nCaseCount << "\t" << case_gt.xx << case_gt << endl;
-    //cout << dec << nControlCount << "\t" << ctrl_gt.xx << ctrl_gt << endl;
 
     ccgd.setCaseDistribution(case_gt);
     ccgd.setControlDistribution(ctrl_gt);
@@ -790,19 +782,17 @@ void CompressedGenotypeTable4::getCaseControlGenotypeDistribution( uint rIdx, Ca
 
 
 void CompressedGenotypeTable4::getContingencyTable( uint rIdx1, uint rIdx2, ContingencyTable &ct ) {
-    ulong ma_offset = rIdx1 * blocks_per_row + 1;
-    ulong mb_offset = rIdx2 * blocks_per_row + 1;
-    PWORD *ma_tmp_data = reinterpret_cast< PWORD * >( data + ma_offset );
-    PWORD *ma_tmp_data_ab = reinterpret_cast< PWORD * >( data + ma_offset + genotype_block_offset_ab );
-    PWORD *ma_tmp_data_bb = reinterpret_cast< PWORD * >( data + ma_offset + genotype_block_offset_bb );
-    PWORD *mb_tmp_data = reinterpret_cast< PWORD * >( data + mb_offset );
-    PWORD *mb_tmp_data_ab = reinterpret_cast< PWORD * >( data + mb_offset + genotype_block_offset_ab );
-    PWORD *mb_tmp_data_bb = reinterpret_cast< PWORD * >( data + mb_offset + genotype_block_offset_bb );
+    PWORD *ma_tmp_data = reinterpret_cast< PWORD * >( data + rIdx1 * blocks_per_row + 1 );
+    PWORD *ma_tmp_data_ab = reinterpret_cast< PWORD * >( data + rIdx1 * blocks_per_row + 1 + genotype_block_offset_ab );
+    PWORD *ma_tmp_data_bb = reinterpret_cast< PWORD * >( data + rIdx1 * blocks_per_row + 1 + genotype_block_offset_bb );
+    PWORD *mb_tmp_data = reinterpret_cast< PWORD * >( data + rIdx2 * blocks_per_row + 1 );
+    PWORD *mb_tmp_data_ab = reinterpret_cast< PWORD * >( data + rIdx2 * blocks_per_row + 1 + genotype_block_offset_ab );
+    PWORD *mb_tmp_data_bb = reinterpret_cast< PWORD * >( data + rIdx2 * blocks_per_row + 1 + genotype_block_offset_bb );
 
     ct.setMarkerAIndex( rIdx1 );
     ct.setMarkerBIndex( rIdx2 );
 
-    contingency_table contingency;
+    CONTIN_TABLE_T contingency;
     ResetContingencyTable( contingency );
 
     PWORD a_aa, a_bb, b_aa, b_bb, a_ab, b_ab;
@@ -816,15 +806,15 @@ void CompressedGenotypeTable4::getContingencyTable( uint rIdx1, uint rIdx2, Cont
         b_ab = *mb_tmp_data_ab++;
         b_bb = *mb_tmp_data_bb++;
 
-        AddToContingencyStream( contingency.n0, a_aa, b_aa );
-        AddToContingencyStream( contingency.n1, a_aa, b_ab );
-        AddToContingencyStream( contingency.n2, a_aa, b_bb );
-        AddToContingencyStream( contingency.n3, a_ab, b_aa );
-        AddToContingencyStream( contingency.n4, a_ab, b_ab );
-        AddToContingencyStream( contingency.n5, a_ab, b_bb );
-        AddToContingencyStream( contingency.n6, a_bb, b_aa );
-        AddToContingencyStream( contingency.n7, a_bb, b_ab );
-        AddToContingencyStream( contingency.n8, a_bb, b_bb );
+        AddToContingencyStream( contingency.AA_BB, a_aa, b_aa );
+        AddToContingencyStream( contingency.AA_Bb, a_aa, b_ab );
+        AddToContingencyStream( contingency.AA_bb, a_aa, b_bb );
+        AddToContingencyStream( contingency.Aa_BB, a_ab, b_aa );
+        AddToContingencyStream( contingency.Aa_Bb, a_ab, b_ab );
+        AddToContingencyStream( contingency.Aa_bb, a_ab, b_bb );
+        AddToContingencyStream( contingency.aa_BB, a_bb, b_aa );
+        AddToContingencyStream( contingency.aa_Bb, a_bb, b_ab );
+        AddToContingencyStream( contingency.aa_bb, a_bb, b_bb );
     }
     ct.setContingency( contingency );
 }
@@ -834,16 +824,14 @@ void CompressedGenotypeTable4::getContingencyTable( uint rIdx1, uint rIdx2, usho
 }
 
 void CompressedGenotypeTable4::getCaseControlContingencyTable( uint rIdx1, uint rIdx2, CaseControlSet &ccs, CaseControlContingencyTable &ccct ) {
-    ulong ma_offset = rIdx1 * blocks_per_row + 1;
-    ulong mb_offset = rIdx2 * blocks_per_row + 1;
-    PWORD *ma_tmp_data = reinterpret_cast< PWORD * >( data + ma_offset );
-    PWORD *ma_tmp_data_ab = reinterpret_cast< PWORD * >( data + ma_offset + genotype_block_offset_ab );
-    PWORD *ma_tmp_data_bb = reinterpret_cast< PWORD * >( data + ma_offset + genotype_block_offset_bb);
-    PWORD *mb_tmp_data = reinterpret_cast< PWORD * >( data + mb_offset );
-    PWORD *mb_tmp_data_ab = reinterpret_cast< PWORD * >( data + mb_offset + genotype_block_offset_ab );
-    PWORD *mb_tmp_data_bb = reinterpret_cast< PWORD * >( data + mb_offset + genotype_block_offset_bb);
+    PWORD *ma_tmp_data = reinterpret_cast< PWORD * >( data +  rIdx1 * blocks_per_row + 1);
+    PWORD *ma_tmp_data_ab = reinterpret_cast< PWORD * >( data + rIdx1 * blocks_per_row + 1 + genotype_block_offset_ab );
+    PWORD *ma_tmp_data_bb = reinterpret_cast< PWORD * >( data + rIdx1 * blocks_per_row + 1 + genotype_block_offset_bb);
+    PWORD *mb_tmp_data = reinterpret_cast< PWORD * >( data + rIdx2 * blocks_per_row + 1 );
+    PWORD *mb_tmp_data_ab = reinterpret_cast< PWORD * >( data + rIdx2 * blocks_per_row + 1 + genotype_block_offset_ab );
+    PWORD *mb_tmp_data_bb = reinterpret_cast< PWORD * >( data + rIdx2 * blocks_per_row + 1 + genotype_block_offset_bb);
 
-    contingency_table case_cont, ctrl_cont;
+    CONTIN_TABLE_T case_cont, ctrl_cont;
     ResetContingencyTable( case_cont );
     ResetContingencyTable( ctrl_cont );
 
@@ -863,15 +851,15 @@ void CompressedGenotypeTable4::getCaseControlContingencyTable( uint rIdx1, uint 
         b_aa = mask & *mb_tmp_data;
         b_ab = mask & *mb_tmp_data_ab;
         b_bb = mask & *mb_tmp_data_bb;
-        AddToContingencyStream( case_cont.n0, a_aa, b_aa );
-        AddToContingencyStream( case_cont.n1, a_aa, b_ab );
-        AddToContingencyStream( case_cont.n2, a_aa, b_bb );
-        AddToContingencyStream( case_cont.n3, a_ab, b_aa );
-        AddToContingencyStream( case_cont.n4, a_ab, b_ab );
-        AddToContingencyStream( case_cont.n5, a_ab, b_bb );
-        AddToContingencyStream( case_cont.n6, a_bb, b_aa );
-        AddToContingencyStream( case_cont.n7, a_bb, b_ab );
-        AddToContingencyStream( case_cont.n8, a_bb, b_bb );
+        AddToContingencyStream( case_cont.AA_BB, a_aa, b_aa );
+        AddToContingencyStream( case_cont.AA_Bb, a_aa, b_ab );
+        AddToContingencyStream( case_cont.AA_bb, a_aa, b_bb );
+        AddToContingencyStream( case_cont.Aa_BB, a_ab, b_aa );
+        AddToContingencyStream( case_cont.Aa_Bb, a_ab, b_ab );
+        AddToContingencyStream( case_cont.Aa_bb, a_ab, b_bb );
+        AddToContingencyStream( case_cont.aa_BB, a_bb, b_aa );
+        AddToContingencyStream( case_cont.aa_Bb, a_bb, b_ab );
+        AddToContingencyStream( case_cont.aa_bb, a_bb, b_bb );
 
         mask = *ctrl_ptr++;
         a_aa = mask & *ma_tmp_data++;
@@ -881,15 +869,15 @@ void CompressedGenotypeTable4::getCaseControlContingencyTable( uint rIdx1, uint 
         b_aa = mask & *mb_tmp_data++;
         b_ab = mask & *mb_tmp_data_ab++;
         b_bb = mask & *mb_tmp_data_bb++;
-        AddToContingencyStream( ctrl_cont.n0, a_aa, b_aa );
-        AddToContingencyStream( ctrl_cont.n1, a_aa, b_ab );
-        AddToContingencyStream( ctrl_cont.n2, a_aa, b_bb );
-        AddToContingencyStream( ctrl_cont.n3, a_ab, b_aa );
-        AddToContingencyStream( ctrl_cont.n4, a_ab, b_ab );
-        AddToContingencyStream( ctrl_cont.n5, a_ab, b_bb );
-        AddToContingencyStream( ctrl_cont.n6, a_bb, b_aa );
-        AddToContingencyStream( ctrl_cont.n7, a_bb, b_ab );
-        AddToContingencyStream( ctrl_cont.n8, a_bb, b_bb );
+        AddToContingencyStream( ctrl_cont.AA_BB, a_aa, b_aa );
+        AddToContingencyStream( ctrl_cont.AA_Bb, a_aa, b_ab );
+        AddToContingencyStream( ctrl_cont.AA_bb, a_aa, b_bb );
+        AddToContingencyStream( ctrl_cont.Aa_BB, a_ab, b_aa );
+        AddToContingencyStream( ctrl_cont.Aa_Bb, a_ab, b_ab );
+        AddToContingencyStream( ctrl_cont.Aa_bb, a_ab, b_bb );
+        AddToContingencyStream( ctrl_cont.aa_BB, a_bb, b_aa );
+        AddToContingencyStream( ctrl_cont.aa_Bb, a_bb, b_ab );
+        AddToContingencyStream( ctrl_cont.aa_bb, a_bb, b_bb );
     }
     ccct.setMarkerAIndex( rIdx1 );
     ccct.setMarkerBIndex( rIdx2 );
@@ -898,17 +886,15 @@ void CompressedGenotypeTable4::getCaseControlContingencyTable( uint rIdx1, uint 
 }
 
 void CompressedGenotypeTable4::getCaseControlContingencyTable( uint rIdx1, uint rIdx2, CaseControlContingencyTable &ccct ) {
-    ulong ma_offset = rIdx1 * nCaseControlBlockCount;
-    ulong mb_offset = rIdx2 * nCaseControlBlockCount;
-    PWORD *ma_tmp_data = reinterpret_cast< PWORD * >( m_cases_controls + ma_offset );
-    PWORD *ma_tmp_data_ab = reinterpret_cast< PWORD * >( m_cases_controls + ma_offset + nCaseBlockCount );
-    PWORD *ma_tmp_data_bb = reinterpret_cast< PWORD * >( m_cases_controls + ma_offset + (nCaseBlockCount<<1) );
+    PWORD *ma_tmp_data = reinterpret_cast< PWORD * >( m_cases_controls +  rIdx1 * nCaseControlBlockCount);
+    PWORD *ma_tmp_data_ab = reinterpret_cast< PWORD * >( m_cases_controls + rIdx1 * nCaseControlBlockCount + nCaseBlockCount );
+    PWORD *ma_tmp_data_bb = reinterpret_cast< PWORD * >( m_cases_controls + rIdx1 * nCaseControlBlockCount + (nCaseBlockCount<<1) );
 
-    PWORD *mb_tmp_data = reinterpret_cast< PWORD * >( m_cases_controls + mb_offset );
-    PWORD *mb_tmp_data_ab = reinterpret_cast< PWORD * >( m_cases_controls + mb_offset + nCaseBlockCount );
-    PWORD *mb_tmp_data_bb = reinterpret_cast< PWORD * >( m_cases_controls + mb_offset + (nCaseBlockCount<<1) );
+    PWORD *mb_tmp_data = reinterpret_cast< PWORD * >( m_cases_controls + rIdx2 * nCaseControlBlockCount );
+    PWORD *mb_tmp_data_ab = reinterpret_cast< PWORD * >( m_cases_controls + rIdx2 * nCaseControlBlockCount + nCaseBlockCount );
+    PWORD *mb_tmp_data_bb = reinterpret_cast< PWORD * >( m_cases_controls + rIdx2 * nCaseControlBlockCount + (nCaseBlockCount<<1) );
 
-    contingency_table case_cont, ctrl_cont;
+    CONTIN_TABLE_T case_cont, ctrl_cont;
     ResetContingencyTable( case_cont );
     ResetContingencyTable( ctrl_cont );
 
@@ -923,24 +909,24 @@ void CompressedGenotypeTable4::getCaseControlContingencyTable( uint rIdx1, uint 
         b_ab = *mb_tmp_data_ab++;
         b_bb = *mb_tmp_data_bb++;
 
-        AddToContingencyStream( case_cont.n0, a_aa, b_aa );
-        AddToContingencyStream( case_cont.n1, a_aa, b_ab );
-        AddToContingencyStream( case_cont.n2, a_aa, b_bb );
-        AddToContingencyStream( case_cont.n3, a_ab, b_aa );
-        AddToContingencyStream( case_cont.n4, a_ab, b_ab );
-        AddToContingencyStream( case_cont.n5, a_ab, b_bb );
-        AddToContingencyStream( case_cont.n6, a_bb, b_aa );
-        AddToContingencyStream( case_cont.n7, a_bb, b_ab );
-        AddToContingencyStream( case_cont.n8, a_bb, b_bb );
+        AddToContingencyStream( case_cont.AA_BB, a_aa, b_aa );
+        AddToContingencyStream( case_cont.AA_Bb, a_aa, b_ab );
+        AddToContingencyStream( case_cont.AA_bb, a_aa, b_bb );
+        AddToContingencyStream( case_cont.Aa_BB, a_ab, b_aa );
+        AddToContingencyStream( case_cont.Aa_Bb, a_ab, b_ab );
+        AddToContingencyStream( case_cont.Aa_bb, a_ab, b_bb );
+        AddToContingencyStream( case_cont.aa_BB, a_bb, b_aa );
+        AddToContingencyStream( case_cont.aa_Bb, a_bb, b_ab );
+        AddToContingencyStream( case_cont.aa_bb, a_bb, b_bb );
     }
 
-    ma_tmp_data = reinterpret_cast< PWORD * >( m_cases_controls + ma_offset + nControlBlockOffset );
-    ma_tmp_data_ab = reinterpret_cast< PWORD * >( m_cases_controls + ma_offset + nControlBlockOffset + nControlBlockCount );
-    ma_tmp_data_bb = reinterpret_cast< PWORD * >( m_cases_controls + ma_offset + nControlBlockOffset + (nControlBlockCount<<1) );
+    ma_tmp_data = reinterpret_cast< PWORD * >( m_cases_controls + rIdx1 * nCaseControlBlockCount + nControlBlockOffset );
+    ma_tmp_data_ab = reinterpret_cast< PWORD * >( m_cases_controls + rIdx1 * nCaseControlBlockCount + nControlBlockOffset + nControlBlockCount );
+    ma_tmp_data_bb = reinterpret_cast< PWORD * >( m_cases_controls + rIdx1 * nCaseControlBlockCount + nControlBlockOffset + (nControlBlockCount<<1) );
 
-    mb_tmp_data = reinterpret_cast< PWORD * >( m_cases_controls + mb_offset + nControlBlockOffset );
-    mb_tmp_data_ab = reinterpret_cast< PWORD * >( m_cases_controls + mb_offset + nControlBlockOffset + nControlBlockCount );
-    mb_tmp_data_bb = reinterpret_cast< PWORD * >( m_cases_controls + mb_offset + nControlBlockOffset + (nControlBlockCount<<1) );
+    mb_tmp_data = reinterpret_cast< PWORD * >( m_cases_controls + rIdx2 * nCaseControlBlockCount + nControlBlockOffset );
+    mb_tmp_data_ab = reinterpret_cast< PWORD * >( m_cases_controls + rIdx2 * nCaseControlBlockCount + nControlBlockOffset + nControlBlockCount );
+    mb_tmp_data_bb = reinterpret_cast< PWORD * >( m_cases_controls + rIdx2 * nCaseControlBlockCount + nControlBlockOffset + (nControlBlockCount<<1) );
 
     for( uint i = 0; i < nControlBlockCount; i += BLOCKS_PER_PWORD ) {
         a_aa = *ma_tmp_data++;
@@ -951,15 +937,15 @@ void CompressedGenotypeTable4::getCaseControlContingencyTable( uint rIdx1, uint 
         b_ab = *mb_tmp_data_ab++;
         b_bb = *mb_tmp_data_bb++;
 
-        AddToContingencyStream( ctrl_cont.n0, a_aa, b_aa );
-        AddToContingencyStream( ctrl_cont.n1, a_aa, b_ab );
-        AddToContingencyStream( ctrl_cont.n2, a_aa, b_bb );
-        AddToContingencyStream( ctrl_cont.n3, a_ab, b_aa );
-        AddToContingencyStream( ctrl_cont.n4, a_ab, b_ab );
-        AddToContingencyStream( ctrl_cont.n5, a_ab, b_bb );
-        AddToContingencyStream( ctrl_cont.n6, a_bb, b_aa );
-        AddToContingencyStream( ctrl_cont.n7, a_bb, b_ab );
-        AddToContingencyStream( ctrl_cont.n8, a_bb, b_bb );
+        AddToContingencyStream( ctrl_cont.AA_BB, a_aa, b_aa );
+        AddToContingencyStream( ctrl_cont.AA_Bb, a_aa, b_ab );
+        AddToContingencyStream( ctrl_cont.AA_bb, a_aa, b_bb );
+        AddToContingencyStream( ctrl_cont.Aa_BB, a_ab, b_aa );
+        AddToContingencyStream( ctrl_cont.Aa_Bb, a_ab, b_ab );
+        AddToContingencyStream( ctrl_cont.Aa_bb, a_ab, b_bb );
+        AddToContingencyStream( ctrl_cont.aa_BB, a_bb, b_aa );
+        AddToContingencyStream( ctrl_cont.aa_Bb, a_bb, b_ab );
+        AddToContingencyStream( ctrl_cont.aa_bb, a_bb, b_bb );
     }
 
     ccct.setMarkerAIndex( rIdx1 );
@@ -969,8 +955,6 @@ void CompressedGenotypeTable4::getCaseControlContingencyTable( uint rIdx1, uint 
 }
 
 void CompressedGenotypeTable4::getCaseControlContingencyTable( uint rIdx1, uint rIdx2, const marginal_information &m1, const marginal_information &m2, CaseControlContingencyTable & ccct ) {
-    //ulong ma_offset = rIdx1 * nCaseControlBlockCount;
-    //ulong mb_offset = rIdx2 * nCaseControlBlockCount;
 
     PWORD *ma_tmp_data = reinterpret_cast< PWORD * >( m_cases_controls +  rIdx1 * nCaseControlBlockCount);
     PWORD *ma_tmp_data_ab = reinterpret_cast< PWORD * >(  m_cases_controls + rIdx1 * nCaseControlBlockCount+ nCaseBlockCount );
@@ -978,85 +962,145 @@ void CompressedGenotypeTable4::getCaseControlContingencyTable( uint rIdx1, uint 
     PWORD *mb_tmp_data = reinterpret_cast< PWORD * >(  m_cases_controls + rIdx2 * nCaseControlBlockCount);
     PWORD *mb_tmp_data_ab = reinterpret_cast< PWORD * >( m_cases_controls + rIdx2 * nCaseControlBlockCount + nCaseBlockCount );
 
-    contingency_table case_cont, ctrl_cont;
+    CONTIN_TABLE_T case_cont, ctrl_cont;
+    ResetContingencyTable( case_cont );
+    ResetContingencyTable( ctrl_cont );
 
-    register PWORD a_aa, b_aa, a_ab, b_ab;
-    register PWORD count_AA, count_BB, count_Aa, count_Bb;
+    if( m1.cases.xx + m1.controls.xx + m2.cases.xx + m2.controls.xx ) {
+        PWORD *ma_tmp_data_bb = reinterpret_cast< PWORD * >( m_cases_controls + rIdx1 * nCaseControlBlockCount+ (nCaseBlockCount << 1) );
+        PWORD *mb_tmp_data_bb = reinterpret_cast< PWORD * >( m_cases_controls + rIdx2 * nCaseControlBlockCount+ (nCaseBlockCount << 1) );
+        register PWORD a_aa, b_aa, a_ab, b_ab, a_bb, b_bb;
 
-    count_AA = 0;
-    count_BB = 0;
-    count_Aa = 0;
-    count_Bb = 0;
+        for( uint i = 0; i < nCaseBlockCount; i += BLOCKS_PER_PWORD ) {
+            a_aa = *ma_tmp_data++;
+            a_ab = *ma_tmp_data_ab++;
+            a_bb = *ma_tmp_data_bb++;
 
-    for( uint i = 0; i < nCaseBlockCount; i += BLOCKS_PER_PWORD ) {
-        a_aa = *ma_tmp_data++;
-        a_ab = *ma_tmp_data_ab++;
+            b_aa = *mb_tmp_data++;
+            b_ab = *mb_tmp_data_ab++;
+            b_bb = *mb_tmp_data_bb++;
 
-        b_aa = *mb_tmp_data++;
-        b_ab = *mb_tmp_data_ab++;
+            AddToContingencyStream( case_cont.AA_BB, a_aa, b_aa );
+            AddToContingencyStream( case_cont.AA_Bb, a_aa, b_ab );
+            AddToContingencyStream( case_cont.AA_bb, a_aa, b_bb );
+            AddToContingencyStream( case_cont.Aa_BB, a_ab, b_aa );
+            AddToContingencyStream( case_cont.Aa_Bb, a_ab, b_ab );
+            AddToContingencyStream( case_cont.Aa_bb, a_ab, b_bb );
+            AddToContingencyStream( case_cont.aa_BB, a_bb, b_aa );
+            AddToContingencyStream( case_cont.aa_Bb, a_bb, b_ab );
+            AddToContingencyStream( case_cont.aa_bb, a_bb, b_bb );
+        }
 
-        AddToContingencyStream( count_AA, a_aa, b_aa );
-        AddToContingencyStream( count_Aa, a_aa, b_ab );
-        //AddToContingencyStream( case_cont.n2, a_aa, b_bb );
-        AddToContingencyStream( count_BB, a_ab, b_aa );
-        AddToContingencyStream( count_Bb, a_ab, b_ab );
-        //AddToContingencyStream( case_cont.n5, a_ab, b_bb );
-        //AddToContingencyStream( case_cont.n6, a_bb, b_aa );
-        //AddToContingencyStream( case_cont.n7, a_bb, b_ab );
-        //AddToContingencyStream( case_cont.n8, a_bb, b_bb );
+        case_cont.AA_xx = m1.cases.aa - case_cont.AA_BB - case_cont.AA_bb - case_cont.AA_Bb;
+        case_cont.Aa_xx = m1.cases.ab - case_cont.Aa_BB - case_cont.Aa_bb - case_cont.Aa_Bb;
+        case_cont.aa_xx = m1.cases.bb - case_cont.aa_bb - case_cont.aa_BB - case_cont.aa_Bb;
+
+        case_cont.xx_BB = m2.cases.aa - case_cont.AA_BB - case_cont.aa_BB - case_cont.Aa_BB;
+        case_cont.xx_Bb = m2.cases.ab - case_cont.AA_Bb - case_cont.aa_Bb - case_cont.Aa_Bb;
+        case_cont.xx_bb = m2.cases.bb - case_cont.AA_bb - case_cont.aa_bb - case_cont.Aa_bb;
+
+        case_cont.xx_xx = m2.cases.xx - case_cont.AA_xx - case_cont.Aa_xx - case_cont.aa_xx;
+
+        ma_tmp_data = reinterpret_cast< PWORD * >( m_cases_controls + rIdx1 * nCaseControlBlockCount + nControlBlockOffset );
+        ma_tmp_data_ab = reinterpret_cast< PWORD * >( m_cases_controls + rIdx1 * nCaseControlBlockCount+ nControlBlockOffset + nControlBlockCount );
+        ma_tmp_data_bb = reinterpret_cast< PWORD * >( m_cases_controls + rIdx1 * nCaseControlBlockCount+ nControlBlockOffset + (nControlBlockCount<<1) );
+
+        mb_tmp_data = reinterpret_cast< PWORD * >( m_cases_controls + rIdx2 * nCaseControlBlockCount + nControlBlockOffset );
+        mb_tmp_data_ab = reinterpret_cast< PWORD * >( m_cases_controls + rIdx2 * nCaseControlBlockCount + nControlBlockOffset + nControlBlockCount );
+        mb_tmp_data_bb = reinterpret_cast< PWORD * >( m_cases_controls + rIdx2 * nCaseControlBlockCount + nControlBlockOffset + (nControlBlockCount<<1) );
+        for( uint i = 0; i < nControlBlockCount; i += BLOCKS_PER_PWORD ) {
+            a_aa = *ma_tmp_data++;
+            a_ab = *ma_tmp_data_ab++;
+            a_bb = *ma_tmp_data_bb++;
+
+            b_aa = *mb_tmp_data++;
+            b_ab = *mb_tmp_data_ab++;
+            b_bb = *mb_tmp_data_bb++;
+
+            AddToContingencyStream( ctrl_cont.AA_BB, a_aa, b_aa );
+            AddToContingencyStream( ctrl_cont.AA_Bb, a_aa, b_ab );
+            AddToContingencyStream( ctrl_cont.AA_bb, a_aa, b_bb );
+            AddToContingencyStream( ctrl_cont.Aa_BB, a_ab, b_aa );
+            AddToContingencyStream( ctrl_cont.Aa_Bb, a_ab, b_ab );
+            AddToContingencyStream( ctrl_cont.Aa_bb, a_ab, b_bb );
+            AddToContingencyStream( ctrl_cont.aa_BB, a_bb, b_aa );
+            AddToContingencyStream( ctrl_cont.aa_Bb, a_bb, b_ab );
+            AddToContingencyStream( ctrl_cont.aa_bb, a_bb, b_bb );
+        }
+
+        ctrl_cont.AA_xx = m1.controls.aa - ctrl_cont.AA_BB - ctrl_cont.AA_bb - ctrl_cont.AA_Bb;
+        ctrl_cont.Aa_xx = m1.controls.ab - ctrl_cont.Aa_BB - ctrl_cont.Aa_bb - ctrl_cont.Aa_Bb;
+        ctrl_cont.aa_xx = m1.controls.bb - ctrl_cont.aa_bb - ctrl_cont.aa_BB - ctrl_cont.aa_Bb;
+
+        ctrl_cont.xx_BB = m2.controls.aa - ctrl_cont.AA_BB - ctrl_cont.aa_BB - ctrl_cont.Aa_BB;
+        ctrl_cont.xx_Bb = m2.controls.ab - ctrl_cont.AA_Bb - ctrl_cont.aa_Bb - ctrl_cont.Aa_Bb;
+        ctrl_cont.xx_bb = m2.controls.bb - ctrl_cont.AA_bb - ctrl_cont.aa_bb - ctrl_cont.Aa_bb;
+
+        ctrl_cont.xx_xx = m2.controls.xx - ctrl_cont.AA_xx - ctrl_cont.Aa_xx - ctrl_cont.aa_xx;
+    } else {
+        register PWORD a_aa, b_aa, a_ab, b_ab;
+        register PWORD count_AA = 0, count_BB = 0, count_Aa = 0, count_Bb = 0;
+
+        for( uint i = 0; i < nCaseBlockCount; i += BLOCKS_PER_PWORD ) {
+            a_aa = *ma_tmp_data++;
+            a_ab = *ma_tmp_data_ab++;
+
+            b_aa = *mb_tmp_data++;
+            b_ab = *mb_tmp_data_ab++;
+
+            AddToContingencyStream( count_AA, a_aa, b_aa );
+            AddToContingencyStream( count_Aa, a_aa, b_ab );
+            AddToContingencyStream( count_BB, a_ab, b_aa );
+            AddToContingencyStream( count_Bb, a_ab, b_ab );
+        }
+        case_cont.AA_BB = count_AA;
+        case_cont.AA_Bb = count_Aa;
+        case_cont.Aa_BB = count_BB;
+        case_cont.Aa_Bb = count_Bb;
+
+        case_cont.AA_bb = m1.cases.aa - case_cont.AA_BB - case_cont.AA_Bb;
+        case_cont.Aa_bb = m1.cases.ab - case_cont.Aa_BB - case_cont.Aa_Bb;
+
+        case_cont.aa_BB = m2.cases.aa - case_cont.AA_BB - case_cont.Aa_BB;
+        case_cont.aa_Bb = m2.cases.ab - case_cont.AA_Bb - case_cont.Aa_Bb;
+
+        case_cont.aa_bb = m2.cases.bb - case_cont.AA_bb - case_cont.Aa_bb;
+
+        ma_tmp_data = reinterpret_cast< PWORD * >( m_cases_controls +  rIdx1 * nCaseControlBlockCount+ nControlBlockOffset);
+        ma_tmp_data_ab = reinterpret_cast< PWORD * >( m_cases_controls +  rIdx1 * nCaseControlBlockCount+ nControlBlockOffset + nControlBlockCount );
+
+        mb_tmp_data = reinterpret_cast< PWORD * >( m_cases_controls + rIdx2 * nCaseControlBlockCount+ nControlBlockOffset);
+        mb_tmp_data_ab = reinterpret_cast< PWORD * >( m_cases_controls + rIdx2 * nCaseControlBlockCount + nControlBlockOffset + nControlBlockCount );
+
+        count_AA = 0;
+        count_BB = 0;
+        count_Aa = 0;
+        count_Bb = 0;
+        for( uint i = 0; i < nControlBlockCount; i += BLOCKS_PER_PWORD ) {
+            a_aa = *ma_tmp_data++;
+            a_ab = *ma_tmp_data_ab++;
+
+            b_aa = *mb_tmp_data++;
+            b_ab = *mb_tmp_data_ab++;
+
+            AddToContingencyStream( count_AA, a_aa, b_aa );
+            AddToContingencyStream( count_Aa, a_aa, b_ab );
+            AddToContingencyStream( count_BB, a_ab, b_aa );
+            AddToContingencyStream( count_Bb, a_ab, b_ab );
+        }
+        ctrl_cont.AA_BB = count_AA;
+        ctrl_cont.AA_Bb = count_Aa;
+        ctrl_cont.Aa_BB = count_BB;
+        ctrl_cont.Aa_Bb = count_Bb;
+
+        ctrl_cont.AA_bb = m1.controls.aa - ctrl_cont.AA_BB - ctrl_cont.AA_Bb;
+        ctrl_cont.Aa_bb = m1.controls.ab - ctrl_cont.Aa_BB - ctrl_cont.Aa_Bb;
+
+        ctrl_cont.aa_BB = m2.controls.aa - ctrl_cont.AA_BB - ctrl_cont.Aa_BB;
+        ctrl_cont.aa_Bb = m2.controls.ab - ctrl_cont.AA_Bb - ctrl_cont.Aa_Bb;
+
+        ctrl_cont.aa_bb = m2.controls.bb - ctrl_cont.AA_bb - ctrl_cont.Aa_bb;
     }
-    case_cont.n0 = count_AA;
-    case_cont.n1 = count_Aa;
-    case_cont.n3 = count_BB;
-    case_cont.n4 = count_Bb;
-
-    case_cont.n2 = m1.cases.aa - case_cont.n0 - case_cont.n1;
-    case_cont.n5 = m1.cases.ab - case_cont.n3 - case_cont.n4;
-
-    case_cont.n6 = m2.cases.aa - case_cont.n0 - case_cont.n3;
-    case_cont.n7 = m2.cases.ab - case_cont.n1 - case_cont.n4;
-
-    case_cont.n8 = m2.cases.bb - case_cont.n2 - case_cont.n5;
-
-    ma_tmp_data = reinterpret_cast< PWORD * >( m_cases_controls +  rIdx1 * nCaseControlBlockCount+ nControlBlockOffset);
-    ma_tmp_data_ab = reinterpret_cast< PWORD * >( m_cases_controls +  rIdx1 * nCaseControlBlockCount+ nControlBlockOffset + nControlBlockCount );
-
-    mb_tmp_data = reinterpret_cast< PWORD * >( m_cases_controls + rIdx2 * nCaseControlBlockCount+ nControlBlockOffset);
-    mb_tmp_data_ab = reinterpret_cast< PWORD * >( m_cases_controls + rIdx2 * nCaseControlBlockCount + nControlBlockOffset + nControlBlockCount );
-
-    count_AA = 0;
-    count_BB = 0;
-    count_Aa = 0;
-    count_Bb = 0;
-    for( uint i = 0; i < nControlBlockCount; i += BLOCKS_PER_PWORD ) {
-        a_aa = *ma_tmp_data++;
-        a_ab = *ma_tmp_data_ab++;
-
-        b_aa = *mb_tmp_data++;
-        b_ab = *mb_tmp_data_ab++;
-
-        AddToContingencyStream( count_AA, a_aa, b_aa );
-        AddToContingencyStream( count_Aa, a_aa, b_ab );
-        //AddToContingencyStream( ctrl_cont.n2, a_aa, b_bb );
-        AddToContingencyStream( count_BB, a_ab, b_aa );
-        AddToContingencyStream( count_Bb, a_ab, b_ab );
-        //AddToContingencyStream( ctrl_cont.n5, a_ab, b_bb );
-        //AddToContingencyStream( ctrl_cont.n6, a_bb, b_aa );
-        //AddToContingencyStream( ctrl_cont.n7, a_bb, b_ab );
-        //AddToContingencyStream( ctrl_cont.n8, a_bb, b_bb );
-    }
-    ctrl_cont.n0 = count_AA;
-    ctrl_cont.n1 = count_Aa;
-    ctrl_cont.n3 = count_BB;
-    ctrl_cont.n4 = count_Bb;
-
-    ctrl_cont.n2 = m1.controls.aa - ctrl_cont.n0 - ctrl_cont.n1;
-    ctrl_cont.n5 = m1.controls.ab - ctrl_cont.n3 - ctrl_cont.n4;
-
-    ctrl_cont.n6 = m2.controls.aa - ctrl_cont.n0 - ctrl_cont.n3;
-    ctrl_cont.n7 = m2.controls.ab - ctrl_cont.n1 - ctrl_cont.n4;
-
-    ctrl_cont.n8 = m2.controls.bb - ctrl_cont.n2 - ctrl_cont.n5;
 
     ccct.setMarkerAIndex( rIdx1 );
     ccct.setMarkerBIndex( rIdx2 );

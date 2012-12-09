@@ -59,13 +59,18 @@ inline void ResetHeaderTable( header_table & ht) {
     ht.l = 0xFFFF000000000000;
 }
 
+#define GENOTYPE_COUNT 4 
+/// FREQUENCY TABLE
+/// Layout:
+/// | AA | Aa | aa | xx |
+///
 union frequency_table {
-    uint freq[ 4 ];
+    uint freq[ GENOTYPE_COUNT ];
     struct {
         ulong l0, l1;
     };
     struct {
-        uint xx, aa, ab, bb;
+        uint aa, ab, bb, xx;
     };
 };
 
@@ -85,6 +90,9 @@ union joint_genotypes {
         byte n0, n1, n2, n3, n4, n5, n6, n7, n8, n9;
     };
     struct {
+        byte AA_BB, AA_Bb, AA_bb, Aa_BB, Aa_Bb, Aa_bb, aa_BB, aa_Bb, aa_bb, xx;
+    };
+    struct {
         ulong ul;
         ushort b;
     };
@@ -93,8 +101,8 @@ union joint_genotypes {
 struct marginal_information {
     frequency_table margins, cases, controls;
     double dMarginalEntropy, dMarginalEntropy_Y;
-    double dPbc[ 8 ];   // cases[4]; controls[4]
-    double dPca[ 8 ];   // cases[4]; controls[4]
+    double dPbc[ 2 * GENOTYPE_COUNT ];   // cases[4]; controls[4]
+    double dPca[ 2 * GENOTYPE_COUNT ];   // cases[4]; controls[4]
 };
 
 #ifndef ResetJointGenotype
@@ -138,66 +146,109 @@ struct marginal_information {
                     }
 #endif
 
+/**********************************************************
+ *
+ * CONTINGENCY TABLE Definitions
+ *
+ *********************************************************/
+
+/// Basic Contingency Table
+/// Layout:
+///   |_BB_|_Bb_|_bb_|
+/// AA| 0  | 1  | 2  | 
+/// Aa| 3  | 4  | 5  | 
+/// aa| 6  | 7  | 8  |
+///
+/// total xx: 9
 union contingency_table {
     uint contin[ 10 ];
     struct {
-        ulong l0, l1, l2, l3, l4;
-    };
-    struct {
         uint n0, n1, n2, n3, n4, n5, n6, n7, n8, n9;
     };
+    struct {
+        uint AA_BB, AA_Bb, AA_bb, Aa_BB, Aa_Bb, Aa_bb, aa_BB, aa_Bb, aa_bb, xx_xx;
+    };
 };
+#define BASIC_CONTIN_COLUMN_COUNT GENOTYPE_COUNT - 1
+#define BASIC_CONTIN_ROW_COUNT GENOTYPE_COUNT - 1
+
+/// Extended Contingency Table
+/// Layout:
+///   |_BB_|_Bb_|_bb_|_xx_|
+/// AA| 0  | 1  | 2  | 3  |
+/// Aa| 4  | 5  | 6  | 7  |
+/// aa| 8  | 9  | 10 | 11 |
+/// xx| 12 | 13 | 14 | 15 |
+union extended_contingency_table {
+    uint contin[ 16 ];
+    struct {
+        uint AA_BB, AA_Bb, AA_bb, AA_xx, Aa_BB, Aa_Bb, Aa_bb, Aa_xx, aa_BB, aa_Bb, aa_bb, aa_xx,
+             xx_BB, xx_Bb, xx_bb, xx_xx;
+    };
+};
+#define EXTENDED_CONTIN_COLUMN_COUNT GENOTYPE_COUNT 
+#define EXTENDED_CONTIN_ROW_COUNT GENOTYPE_COUNT
+
+typedef extended_contingency_table CONTIN_TABLE_T;
+
+#ifndef CONTIN_BYTE_SIZE
+#define CONTIN_BYTE_SIZE sizeof( CONTIN_TABLE_T )
+#endif
+
+#define CONTIN_ROW_COUNT EXTENDED_CONTIN_ROW_COUNT
+#define CONTIN_COLUMN_COUNT EXTENDED_CONTIN_COLUMN_COUNT
+
 
 #ifndef ResetContingencyTable
-#define ResetContingencyTable( c ) c.l0 = 0; c.l1 = 0; c.l2 = 0; c.l3 = 0; c.l4 = 0;
+#define ResetContingencyTable( c ) memset( c.contin, 0, CONTIN_BYTE_SIZE )
 #endif
 
 #ifndef CopyContingencyTable
-#define CopyContingencyTable( c, v ) c.l0 = v.l0; c.l1 = v.l1; c.l2 = v.l2; c.l3 = v.l3; c.l4 = v.l4;
+#define CopyContingencyTable( c, v ) memcpy( c.contin, v.contin, CONTIN_BYTE_SIZE ) 
 #endif
 
 #ifndef ContingencyAddJointGenotype
 #define ContingencyAddJointGenotype( c, v )               \
-                        c.n0 = c.n0 + v.n0;               \
-                        c.n1 = c.n1 + v.n1;               \
-                        c.n2 = c.n2 + v.n2;               \
-                        c.n3 = c.n3 + v.n3;               \
-                        c.n4 = c.n4 + v.n4;               \
-                        c.n5 = c.n5 + v.n5;               \
-                        c.n6 = c.n6 + v.n6;               \
-                        c.n7 = c.n7 + v.n7;               \
-                        c.n8 = c.n8 + v.n8;               \
-                        c.n9 = c.n9 + v.n9;
+                        c.AA_BB += v.AA_BB;               \
+                        c.AA_Bb += v.AA_Bb;               \
+                        c.AA_bb += v.AA_bb;               \
+                        c.Aa_BB += v.Aa_BB;               \
+                        c.Aa_Bb += v.Aa_Bb;               \
+                        c.Aa_bb += v.Aa_bb;               \
+                        c.aa_BB += v.aa_BB;               \
+                        c.aa_Bb += v.aa_Bb;               \
+                        c.aa_bb += v.aa_bb;               \
+                        c.xx_xx += v.xx;
 #endif
 
 #ifndef UpdateContingency
 #define UpdateContingency( c, ma, mb )              \
                     if( ma == 0 || mb == 0 ) {      \
-                        ++c.n9;                     \
+                        ++c.xx_xx;                     \
                     } else {                        \
                         if( ma == 1 ) {             \
                             if( mb == 1 ) {         \
-                                ++c.n0;             \
+                                ++c.AA_BB;             \
                             } else if( mb == 2 ) {  \
-                                ++c.n1;             \
+                                ++c.AA_Bb;             \
                             } else {                \
-                                ++c.n2;             \
+                                ++c.AA_bb;             \
                             }                       \
                         } else if( ma == 2 ) {      \
                             if( mb == 1 ) {         \
-                                ++c.n3;             \
+                                ++c.Aa_BB;             \
                             } else if( mb == 2 ) {  \
-                                ++c.n4;             \
+                                ++c.Aa_Bb;             \
                             } else {                \
-                                ++c.n5;             \
+                                ++c.Aa_bb;             \
                             }                       \
                         } else {                    \
                             if( mb == 1 ) {         \
-                                ++c.n6;             \
+                                ++c.aa_BB;             \
                             } else if( mb == 2 ) {  \
-                                ++c.n7;             \
+                                ++c.aa_Bb;             \
                             } else {                \
-                                ++c.n8;             \
+                                ++c.aa_bb;             \
                             }                       \
                         }                           \
                     }

@@ -44,9 +44,9 @@ namespace libgwaspp {
 namespace genetics {
 
 void printFrequencyDistribution( const frequency_table & ft, ostream & out, bool include_header = false );
-void printContingencyTable( const contingency_table & ct, ostream & out, bool include_header = false );
+void printContingencyTable( const CONTIN_TABLE_T & ct, ostream & out, bool include_header = false );
 
-ostream &operator<<(ostream &out, contingency_table & ct );
+ostream &operator<<(ostream &out, CONTIN_TABLE_T & ct );
 ostream &operator<<(ostream &out, frequency_table &ft );
 ostream &operator<<(ostream &out, marginal_information &mi );
 
