@@ -77,13 +77,13 @@ sub make_tplink_cc {
     for ( my $i = 0; $i < $icount; $i++ ) {
         my $c = int( rand(2) );
         push (@case_control, $c);
-        print TFAM "Fam_$i\tInd_$i\tPat_$i\tMat_$i\tx\t$c\n";
+        print TFAM "Fam_$i Ind_$i Pat_$i Mat_$i x $c\n";
     }
 
     for ( my $i = 0; $i < $mcount; $i++ ) {
         my ($res, $case_dist, $ctrl_dist) = build_genotype_for_marker_cc( $icount, \@case_control );
 
-        print TPED "0\trs$i\t0\t$i"."$res\n";
+        print TPED "0 rs$i 0 $i"."$res\n";
         print CASE_EXPECTED "$case_dist\n";
         print CTRL_EXPECTED "$ctrl_dist\n";
     }
@@ -101,13 +101,13 @@ sub make_tplink {
     open EXPECTED, ">$path.expected.dist" or die $!;
 
     for ( my $i = 0; $i < $icount; $i++ ) {
-        print TFAM "Fam_$i\tInd_$i\tPat_$i\tMat_$i\tx\t1\n";
+        print TFAM "Fam_$i Ind_$i Pat_$i Mat_$i x 1\n";
     }
 
     for ( my $i = 0; $i < $mcount; $i++ ) {
         my ($res, $dist) = build_genotype_for_marker( $icount );
 
-        print TPED "0\trs$i\t0\t$i"."$res\n";
+        print TPED "0 rs$i 0 $i"."$res\n";
         print EXPECTED "$dist\n";
     }
 
@@ -138,36 +138,36 @@ sub build_genotype_for_marker_cc {
         if( $cc_list[ $i ] ) {
             if( $v < 0 ) {
                 $case_xx++;
-                $res = $res."\t0\t0";
+                $res = $res." 0 0";
             } elsif ( $v < 34 ) {
                 $case_aa++;
-                $res = $res."\tA\tA";
+                $res = $res." A A";
             } elsif ( $v < 67 ) {
                 $case_ab++;
-                $res = $res."\tA\tC";
+                $res = $res." A C";
             } else {
                 $case_bb++;
-                $res = $res."\tC\tC";
+                $res = $res." C C";
             }
         } else {
             if( $v < 0) {
                 $ctrl_xx++;
-                $res = $res."\t0\t0";
+                $res = $res." 0 0";
             } elsif ( $v < 34 ) {
                 $ctrl_aa++;
-                $res = $res."\tA\tA";
+                $res = $res." A A";
             } elsif ( $v < 67 ) {
                 $ctrl_ab++;
-                $res = $res."\tA\tC";
+                $res = $res." A C";
             } else {
                 $ctrl_bb++;
-                $res = $res."\tC\tC";
+                $res = $res." C C";
             }
         }
     }
 
-    my $case_dist = "$case_xx\t$case_aa\t$case_ab\t$case_bb";
-    my $ctrl_dist = "$ctrl_xx\t$ctrl_aa\t$ctrl_ab\t$ctrl_bb";
+    my $case_dist = "$case_xx $case_aa $case_ab $case_bb";
+    my $ctrl_dist = "$ctrl_xx $ctrl_aa $ctrl_ab $ctrl_bb";
     chomp($res);
     return ($res, $case_dist, $ctrl_dist);
 }
@@ -188,20 +188,20 @@ sub build_genotype_for_marker {
 
         if( $v == 0 ) { 
             $xx++;
-            $res = $res."\t0\t0";
+            $res = $res." 0 0";
         } elsif( $v == 1 ) { 
             $aa++;
-            $res = $res."\tA\tA";
+            $res = $res." A A";
         } elsif( $v == 2 ) { 
             $ab++;
-            $res = $res."\tA\tC";
+            $res = $res." A C";
         } else { 
             $bb++;
-            $res = $res."\tC\tC";
+            $res = $res." C C";
         }
     }
 
     chomp($res);
-    $dist = "$xx\t$aa\t$ab\t$bb";
+    $dist = "$xx $aa $ab $bb";
     return ($res, $dist);
 }

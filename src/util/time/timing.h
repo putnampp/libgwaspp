@@ -40,7 +40,7 @@
 namespace util {
 
 #ifndef NANO_TIME
-#define NANO_TIME 0
+#define NANO_TIME 1
 #endif
 
 #if NANO_TIME

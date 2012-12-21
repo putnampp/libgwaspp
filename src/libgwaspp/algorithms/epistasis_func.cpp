@@ -113,18 +113,24 @@ void ContingencyPerformance( void * input, void * output ) {
 
     INIT_LAPSE_TIME;
 
-    uint i, j;
+    uint i, j, k = 0;
 
     for( i = 0; i < marker_count; ++i ) {
-        RECORD_START;
-        for( j = i + 1; j < marker_count; ++j ) {
+        //RECORD_START;
+        for( j = i + 1; j < marker_count; ++j, ++k ) {
+            RECORD_START;
             gt.getContingencyTable( i, j, ct );
-        }
-        RECORD_STOP;
+            RECORD_STOP;
 
-        out << "Single Contingencies " << ( int ) i << " x " << ( int )( marker_count - ( i + 1 ) ) << ": ";
-        PRINT_LAPSE( out, "" );
-        out << endl;
+            out << (int)k;
+            PRINT_LAPSE( out, "\t");
+            out << endl;
+        }
+        //RECORD_STOP;
+
+        //out << "Single Contingencies " << ( int ) i << " x " << ( int )( marker_count - ( i + 1 ) ) << ": ";
+        //PRINT_LAPSE( out, "" );
+        //out << endl;
     }
 }
 
