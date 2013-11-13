@@ -34,7 +34,7 @@ struct bin {
             distribution->pop_back();
             delete p;
         }
-        delete distribution; 
+        delete distribution;
     }
 };
 
@@ -44,7 +44,7 @@ bool parseBins( const string & file, bins * b );
 ostream & operator<<( ostream & o, const bin & b );
 void buildDataSet( bin * b, unsigned int nSnps, unsigned int nSamples );
 
-void print( const vector< char > * alleles );
+void print( unsigned int, const vector< char > * alleles );
 
 int main( int argc, char ** argv ) {
 
@@ -75,7 +75,7 @@ int main( int argc, char ** argv ) {
         b.pop_back();
         delete del;
     }
-    
+
     return 0;
 }
 
@@ -98,7 +98,7 @@ bool parseBins( const string & file, bins * b ) {
     if( iFile.bad() ) {
         cout << "Failed to read column headers" << endl;
         iFile.close();
-        return false;    
+        return false;
     }
 
     if( l.back() == '\r' ) {
@@ -132,7 +132,7 @@ bool parseBins( const string & file, bins * b ) {
         while( it != t.end() ) {
             if(! it->empty() ) {
                 double count = boost::lexical_cast< double >( (*it) );
-                
+
                 (*b)[i]->total_size += count;
                 (*b)[i++]->distribution->push_back( new percent_count( percent, count) );
                 it++;
@@ -151,39 +151,51 @@ void buildDataSet( bin * b, unsigned int nSnps, unsigned int nSamples ) {
     unsigned int nAlleles = 2 * nSamples;
     alleles.reserve( nAlleles );
 
+    vector< pair< double, unsigned int > > snp_sets;
+
+    /*
+    * pre-compute the expected number of snps from each bin
+    */
     Distro::iterator it = b->distribution->begin();
     unsigned int t = 0;
     while( it != b->distribution->end() ) {
         percent_count * lb = (*it++);
 
         unsigned int m = ceil((lb->second / b->total_size) * (double) nSnps);
+        snp_sets.push_back( make_pair( lb->first, m ) );
+    }
 
-        for( unsigned int i = 0; i < m && t < nSnps; ++i, ++t ) {
-            alleles.clear();
-            int r = rand() % 1000; //  [0, 1000)
-            double p = lb->first + ((double) r / 100000.0); // percent + [0.00000, 0.00999]
-            unsigned int s = (unsigned int) floor( p * 2.0 * (double) nSamples);
+    for( unsigned int t = 0; t < nSnps; ) {
+        random_shuffle( snp_sets.begin(), snp_sets.end() );
+        for( vector< pair< double, unsigned int > >::iterator sset = snp_sets.begin(); sset != snp_sets.end(); sset++ ) {
+            if( sset->second > 0 ) {
+                alleles.clear();
+                int r = rand() % 1000; //  [0, 1000)
+                double p = sset->first + ((double) r / 100000.0); // percent + [0.00000, 0.00999]
+                unsigned int s = (unsigned int) floor( p * 2.0 * (double) nSamples);
 
-            for( unsigned int j = 0; j < s; ++j ) {
-                alleles.push_back( 'B' );
+                for( unsigned int j = 0; j < s; ++j ) {
+                    alleles.push_back( 'B' );
+                }
+
+                for( ; s < nAlleles; ++s ) {
+                    alleles.push_back( 'A' );
+                }
+
+                random_shuffle( alleles.begin(), alleles.end() );
+
+                print( t++, &alleles );
+                sset->second--;
             }
-
-            for( ; s < nAlleles; ++s ) {
-                alleles.push_back( 'A' );
-            }
-
-            random_shuffle( alleles.begin(), alleles.end() );
-
-            print( &alleles );
         }
     }
 }
 
-void print( const vector< char > * alleles ) {
+void print( unsigned int snp_idx, const vector< char > * alleles ) {
     if( alleles->empty() ) return;
 
     vector< char >::const_iterator it = alleles->begin();
-    cout << (*it++);
+    cout << snp_idx;
     while( it != alleles->end() ) {
         cout << "\t" << (*it++);
     }
