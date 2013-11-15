@@ -42,14 +42,15 @@ typedef vector< bin * > bins;
 
 bool parseBins( const string & file, bins * b );
 ostream & operator<<( ostream & o, const bin & b );
-void buildDataSet( bin * b, unsigned int nSnps, unsigned int nSamples );
+void buildDataSet( bin * b, unsigned int nSnps, unsigned int nSamples, const string &  );
+bool printTFam( const string & , unsigned int samples );
 
-void print( unsigned int, const vector< char > * alleles );
+void print( ostream &, unsigned int, const vector< char > * alleles );
 
 int main( int argc, char ** argv ) {
 
-    if( argc != 5 ) {
-        cout << "Expected usage: simgeno <dist_table> <dist_idx> <nSnps> <nSamples>" << endl;
+    if( argc != 6 ) {
+        cout << "Expected usage: simgeno <dist_table> <dist_idx> <nSnps> <nSamples> <outfile_prefix>" << endl;
         return 1;
     }
 
@@ -60,6 +61,8 @@ int main( int argc, char ** argv ) {
     unsigned int nSnps = boost::lexical_cast< unsigned int >( argv[3] );
     unsigned int nSamples = boost::lexical_cast< unsigned int >( argv[4] );
 
+    string out_prefix( argv[5] );
+    
     bins b;
 
     cout << "Parsing distributions:" << endl;
@@ -68,7 +71,7 @@ int main( int argc, char ** argv ) {
         return 1;
     }
 
-    buildDataSet( b[dist_idx], nSnps, nSamples );
+    buildDataSet( b[dist_idx], nSnps, nSamples, out_prefix );
 
     while(! b.empty() ) {
         bin * del = b.back();
@@ -144,12 +147,27 @@ bool parseBins( const string & file, bins * b ) {
     return true;
 }
 
-void buildDataSet( bin * b, unsigned int nSnps, unsigned int nSamples ) {
+void buildDataSet( bin * b, unsigned int nSnps, unsigned int nSamples, const string & outprefix ) {
     cout << "Building data set for : " << *b << ", " << nSnps << ", " << nSamples << endl;
     vector< char > alleles;
 
     unsigned int nAlleles = 2 * nSamples;
     alleles.reserve( nAlleles );
+
+    string tmp_filename = outprefix + "." + boost::lexical_cast<string>(nSnps) + "." + boost::lexical_cast<string>(nSamples) + ".tfam";
+    
+    if( !printTFam( tmp_filename, nSamples) ) {
+        return;
+    }
+
+    tmp_filename = outprefix + "." + boost::lexical_cast<string>(nSnps) + "." + boost::lexical_cast<string>(nSamples) + ".tped";
+
+    ofstream out( tmp_filename.c_str() );
+
+    if( !out.is_open() ) {
+        cout << "Unable to open: " << tmp_filename << endl;
+        return;
+    }
 
     vector< pair< double, unsigned int > > snp_sets;
 
@@ -184,20 +202,48 @@ void buildDataSet( bin * b, unsigned int nSnps, unsigned int nSamples ) {
 
                 random_shuffle( alleles.begin(), alleles.end() );
 
-                print( t++, &alleles );
+                print(out, t++, &alleles );
                 sset->second--;
             }
         }
     }
 }
 
-void print( unsigned int snp_idx, const vector< char > * alleles ) {
+bool printTFam( const string & file, unsigned int samples ) {
+    ofstream out( file.c_str() );
+    
+    if( !out.is_open() ) {
+        cout << "Unable to open: " << file << endl;
+        return false;
+    }
+    unsigned int rnd = rand();
+    int j = 0;
+    for( unsigned int i = 0; i < samples; ++i ) {
+        out << "Fam_" << i 
+            << "\tInd_" << i 
+            << "\tPat_" << i 
+            << "\tMat_" << i
+            << "\tx";
+
+        out << "\t" << (int)(rnd & 1) << "\n";
+
+        rnd >>= 1;
+        if( ++j >= 32 ) {
+            rnd = rand();
+            j = 0;
+        }
+    }
+
+    return true;
+}
+
+void print( ostream & o, unsigned int snp_idx, const vector< char > * alleles ) {
     if( alleles->empty() ) return;
 
     vector< char >::const_iterator it = alleles->begin();
-    cout << snp_idx;
+    o << "0\trs" << snp_idx << "\t0\t0";
     while( it != alleles->end() ) {
-        cout << "\t" << (*it++);
+        o << "\t" << (*it++);
     }
-    cout << "\n";
+    o << "\n";
 }

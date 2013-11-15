@@ -141,7 +141,7 @@ int main( int argc, char **argv ) {
 
     auto_ptr< set< string > > marker_ids( new set<string>() ), individual_ids(new set<string>());
 
-    char delim = ' ';
+    char delim = '\t';
     if( g_ft == TPLINK ) {
         ipf = auto_ptr<GeneticDataFile>(new TfamPhenotypeFile());
         igf = auto_ptr<GeneticDataFile>(new TpedGenotypeFile());
