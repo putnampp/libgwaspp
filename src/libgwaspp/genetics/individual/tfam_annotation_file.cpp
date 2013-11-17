@@ -45,7 +45,6 @@ bool TFamAnnotationFile::populateGeneticData( string &filename, GeneticData   *g
 
     set<string> cases, controls;
 
-    delim = ' ';
     string id;
     while( !iFile.eof() ) {
         getline( iFile, line );

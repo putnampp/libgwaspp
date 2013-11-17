@@ -69,6 +69,8 @@ void epistasis_all2( void *input, void *output );
 void ContingencyDebug( void * input, void * output );
 void ContingencyPerformance( void * input, void * output );
 
+void ContingencyCCPerformance( void * input, void * output );
+
 void EpistasisDebug( void * input, void * output );
 void EpistasisPerformance( void * input, void * output );
 

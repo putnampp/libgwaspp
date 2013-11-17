@@ -96,6 +96,7 @@ const string CASE_CONTROL_ANNOTATION_FILE = "annot";
 const string OUTPUT_FILE_KEY = "output";
 
 const string TEST_CONTINGENGY_PERFORMANCE_KEY = "contin-perform";
+const string TEST_CONTINGENGY_CC_PERFORMANCE_KEY = "contin-cc-perform";
 const string TEST_CONTINGENCY_DEBUG_KEY = "contin-debug";
 const string TEST_EPISTASIS_PERFORMANCE_KEY = "epi-perform";
 const string TEST_EPISTASIS_DEBUG_KEY = "epi-debug";
@@ -203,6 +204,10 @@ int main( int argc, char **argv ) {
         compute( ContingencyPerformance, ( void * ) &inp_all, ( void * ) out );
     }
 
+    if( vm.count( TEST_CONTINGENGY_CC_PERFORMANCE_KEY ) ) {
+        compute( ContingencyCCPerformance, ( void * ) &inp_all, ( void * ) out );
+    }
+
     if( vm.count( TEST_CONTINGENCY_DEBUG_KEY ) ) {
         compute( ContingencyDebug,  ( void * ) &inp_all, ( void * ) out );
     }
@@ -263,6 +268,7 @@ bool parseArguments( int argc, char **argv, po::variables_map &vm ) {
     po::options_description tests("Tests");
     tests.add_options()
     ((TEST_CONTINGENGY_PERFORMANCE_KEY ).c_str(), "Performance test of Contingency tables")
+    ((TEST_CONTINGENGY_CC_PERFORMANCE_KEY ).c_str(), "Performance test of case/control Contingency tables")
     ((TEST_CONTINGENCY_DEBUG_KEY).c_str(), "Build and Print Contingency tables")
     ((TEST_EPISTASIS_PERFORMANCE_KEY).c_str(), "Performance test of Epistasis algorithm")
     ((TEST_EPISTASIS_DEBUG_KEY).c_str(), "Build and Print Case/Control Contingency Tables for Epistasis analysis" )

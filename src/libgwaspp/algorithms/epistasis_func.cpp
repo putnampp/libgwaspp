@@ -134,6 +134,73 @@ void ContingencyPerformance( void * input, void * output ) {
     }
 }
 
+void ContingencyCCPerformance( void * input, void * output ) {
+    IndexedInput &inp = *reinterpret_cast<IndexedInput *>( input );
+    ostream & out = ((output == NULL ) ? cout : *reinterpret_cast< ostream * >(output));
+
+    GeneticData * gd = inp.gd;
+    CaseControlSet &ccs = *gd->getCaseControlSet();
+
+    int nCases = ccs.getCaseCount();
+    int nControls = ccs.getControlCount();
+    int nIndivids = nCases + nControls;
+    int nMarkerCount = 0;
+
+    GenoTable &gt = *gd->getGenotypeTable();
+
+    // pre-select case/control individuals
+    gt.selectCaseControl( ccs );
+
+    // pre-compute marginal distributions for all markers
+    marginal_information * pMargins = NULL;
+    marginal_information * pMar1, * pMar2;
+    computeMargins( gt, nIndivids, pMargins, nMarkerCount );
+
+    vector< uint > filteredIndices;
+
+    for( uint i = 0; i < (uint)nMarkerCount; ++i ) {
+        filteredIndices.push_back(i);
+    }
+
+    vector< uint >::const_iterator itIdx1, itIdx2;
+    uint idx, idx2;
+    CaseControlContingencyTable ccct;
+
+    const CONTIN_TABLE_T & contin_ca = *ccct.getCaseContingencyTable();
+    const CONTIN_TABLE_T & contin_co = *ccct.getControlContingencyTable();
+
+/*
+    const uint * pContinCa, * pContinCo, *denom;
+    double dPab, *pPbc_ca, *pPbc_co, *pPca_ca, *pPca_co;
+    double tao, interMeasure;
+    double tmp1, tmp2, tmp3;
+
+    typedef pair< uint, uint > SNPPair;
+    typedef pair< SNPPair, double> SNPInteractionPair;
+    vector< SNPInteractionPair > passingThreshold;
+
+    double maxInteraction = -99999999, minInteraction = 999999999, thresholdRecord = 30.0;
+*/
+    unsigned int k = 0;
+    INIT_LAPSE_TIME;
+    // pre-screening
+    for( itIdx1 = filteredIndices.begin(); itIdx1 != filteredIndices.end(); itIdx1++ ) {
+        idx = *itIdx1;
+        pMar1 = &pMargins[idx];
+        for( itIdx2 = itIdx1 + 1; itIdx2 != filteredIndices.end(); itIdx2++, ++k ) {
+            idx2 = *itIdx2;
+            pMar2 = &pMargins[ idx2 ];
+            RECORD_START;
+            gt.getCaseControlContingencyTable( idx, idx2, *pMar1, *pMar2, ccct );
+
+            RECORD_STOP;
+            out << (int)k;
+            PRINT_LAPSE( out, "");
+            out << endl;
+        }
+    }
+}
+
 void epistasis_all2( void *input, void *output ) {
     IndexedInput &inp = *reinterpret_cast<IndexedInput *>( input );
     ostream & out = ((output == NULL ) ? cout : *reinterpret_cast< ostream * >(output));
