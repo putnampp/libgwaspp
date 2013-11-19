@@ -195,7 +195,7 @@ void ContingencyCCPerformance( void * input, void * output ) {
 
             RECORD_STOP;
             out << (int)k;
-            PRINT_LAPSE( out, "");
+            PRINT_LAPSE( out, "\t");
             out << endl;
         }
     }
